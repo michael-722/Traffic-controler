@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Netcode;
 
 public class DebugController : MonoBehaviour
 {
@@ -13,12 +14,19 @@ public class DebugController : MonoBehaviour
     private int consoleHeight = 30;
     private Vector2 scrollPos;
 
-    private string autoCompleteSuggestion = "";//current command suggestion
-    private int suggestionIndex = 0;//used to cycle through multiple suggestions if there are more than one
+    private string autoCompleteSuggestion = "";
+    private int suggestionIndex = 0;
+
+    [SerializeField] private Vector2 referenceResolution = new Vector2(1920, 1080);
+    [SerializeField] private float consoleScale = 1f;
 
     //command definitions
 
     public static DebugCommand ShowHelp;
+
+    public static DebugCommand StartGame;
+    public static DebugCommand<string> JoinGame;
+    public static DebugCommand Dissconnect;
 
     public List<object> commandList;
 
@@ -37,10 +45,27 @@ public class DebugController : MonoBehaviour
             showHelp = !showHelp;
         });
 
+        StartGame = new DebugCommand("startGame", "start a new game as host", "startGame", () =>
+        {
+            Relay.instance.CreateRelay();
+        });
+        JoinGame = new DebugCommand<string>("joinGame", "join a game as client with a join code", "joinGame <string joinCode>", (string joinCode) =>
+        {
+            Relay.instance.JoinRelay(joinCode);
+        });
+        Dissconnect = new DebugCommand("dissconnect", "dissconnect from current game", "dissconnect", () =>
+        {
+            NetworkManager.Singleton.Shutdown();
+        });
+
+
         //command indexing
         commandList = new List<object>
         {
-            ShowHelp
+            ShowHelp,
+            StartGame,
+            JoinGame,
+            Dissconnect
         };
     }
 
@@ -68,6 +93,11 @@ public class DebugController : MonoBehaviour
     {
         if (!showConsole) return;
 
+        //scale gui based on ref res
+        float scaleX = (Screen.width / referenceResolution.x) * consoleScale;
+        float scaleY = (Screen.height / referenceResolution.y) * consoleScale;
+        GUI.matrix = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, new Vector3(scaleX, scaleY, 1));
+
         //check for ` key to close console
         if (Event.current.type == EventType.KeyDown && Event.current.keyCode == KeyCode.BackQuote)
         {
@@ -90,14 +120,14 @@ public class DebugController : MonoBehaviour
             Event.current.Use();//stop tab from focusing next control
         }
 
-        float y = Screen.height - consoleHeight;
+        float y = (Screen.height / scaleY) - consoleHeight;
 
         if (showHelp)//draw help box
         {
-            GUI.Box(new Rect(0, y - 100, Screen.width / 2, 100), "");
-            Rect viewport = new Rect(0, 0, Screen.width - 30, 20 * commandList.Count);
+            GUI.Box(new Rect(0, y - 100, referenceResolution.x, 100), "");
+            Rect viewport = new Rect(0, 0, referenceResolution.x - 30, 20 * commandList.Count);
 
-            scrollPos = GUI.BeginScrollView(new Rect(0, y - 100, Screen.width, 90), scrollPos, viewport);
+            scrollPos = GUI.BeginScrollView(new Rect(0, y - 100, referenceResolution.x, 90), scrollPos, viewport);
 
             for (int i = 0; i < commandList.Count; i++)
             {
@@ -113,9 +143,9 @@ public class DebugController : MonoBehaviour
         }
 
         //draw console background and text field
-        GUI.Box(new Rect(0, y, Screen.width / 2, 30), "");
+        GUI.Box(new Rect(0, y, referenceResolution.x, 30), "");
         GUI.SetNextControlName("ConsoleInput");
-        input = GUI.TextField(new Rect(10, y + 5, (Screen.width / 2) - 20, 20), input);
+        input = GUI.TextField(new Rect(10, y + 5, referenceResolution.x - 20, 20), input);
 
         UpdateAutoCompleteSuggestion();//update suggestion based on current input
 

@@ -44,3 +44,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 980ec6e4ffd6a9641af8672ee5fc2713, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  referenceResolution: {x: 1920, y: 1080}
+  consoleScale: 2.5
