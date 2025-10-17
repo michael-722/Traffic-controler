@@ -1,14 +1,14 @@
 using UnityEngine;
 using System;
-using Unity.Netcode;
 using TMPro;
 
-public class UIManager : NetworkBehaviour
+public class UIManager : MonoBehaviour
 {
     public event Action<string> OnStartClientPressed;
     public event Action OnStartHostPressed;
 
-    [SerializeField] private TMP_InputField joinCode;
+    [SerializeField] private TMP_InputField joinCodeInput;
+    [SerializeField] private TMP_Text joinCodeDisplay;
 
     public void StartHostBtn()
     {
@@ -17,6 +17,11 @@ public class UIManager : NetworkBehaviour
 
     public void StartClientBtn()
     {
-        OnStartClientPressed?.Invoke(joinCode.text.Trim());
+        OnStartClientPressed?.Invoke(joinCodeInput.text.Trim());
+    }
+
+    public void DisplayJoinCode(string code)
+    {
+        joinCodeDisplay.text = "Join code:" + code;
     }
 }

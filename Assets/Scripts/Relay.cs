@@ -5,15 +5,17 @@ using Unity.Services.Relay;
 using Unity.Services.Relay.Models;
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
-using System.Collections;
+using System;
 
 public class Relay : MonoBehaviour
 {
+    public event Action<string> joinCodeCreated;
+
     private async void Awake()
     {
         DontDestroyOnLoad(gameObject);
 
-        //relay init
+        //srelay init
         try
         {
             await UnityServices.InitializeAsync();
@@ -27,37 +29,17 @@ public class Relay : MonoBehaviour
         }
     }
 
-    #region listeners
-    private IEnumerator Start()
-    {
-        UIManager ui = null;
-        yield return new WaitUntil(() => (ui = FindFirstObjectByType<UIManager>()) != null);
-
-        Debug.Log("listners subscribe");
-        ui.OnStartHostPressed += CreateHost;
-        ui.OnStartClientPressed += JoinGame;
-    }
-
-    private void OnDisable()
-    {
-        UIManager ui = FindFirstObjectByType<UIManager>();
-        if (ui == null) return;
-
-        Debug.Log("relay disable");
-        ui.OnStartHostPressed -= CreateHost;
-        ui.OnStartClientPressed -= JoinGame;
-    }
-    #endregion
-
     public async void CreateHost()
     {
-        Debug.Log("created host");
+        //Debug.Log("created host");
         try
         {
             Allocation allocation = await RelayService.Instance.CreateAllocationAsync(3);
 
             string joinCode = await RelayService.Instance.GetJoinCodeAsync(allocation.AllocationId);
             Debug.Log($"join code: {joinCode}");
+
+            joinCodeCreated?.Invoke(joinCode);
 
             //set relay data for netcode transport
             NetworkManager.Singleton.GetComponent<UnityTransport>().SetHostRelayData(
@@ -77,7 +59,7 @@ public class Relay : MonoBehaviour
 
     public async void JoinGame(string joinCode)
     {
-        Debug.Log("created client");
+        //Debug.Log("created client");
         try
         {
             JoinAllocation allocation = await RelayService.Instance.JoinAllocationAsync(joinCode);
