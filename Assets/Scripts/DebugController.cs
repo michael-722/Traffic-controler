@@ -30,6 +30,8 @@ public class DebugController : MonoBehaviour
 
     public List<object> commandList;
 
+    private Relay relay;
+
     /*
     when creating a command that needs a type not a void return (i.e. int, float, string, bool)
     must use a try and catch to handle invalid input errors 
@@ -37,31 +39,30 @@ public class DebugController : MonoBehaviour
 
     private void Awake()
     {
-        //command setup
+        relay = FindFirstObjectByType<Relay>();
+    }
+
+    private void Start()
+    {
         //command format = new DebugCommand<type>("commandId", "command description", "command format (name<T>)", (type value) => { });
 
-        ShowHelp = new DebugCommand("showHelp", "show command list", "showHelp", () =>
-        {
+        ShowHelp = new DebugCommand("showHelp", "show command list", "showHelp", () => {
             showHelp = !showHelp;
         });
 
-        StartGame = new DebugCommand("startGame", "start a new game as host", "startGame", () =>
-        {
-            Relay.instance.CreateRelay();
+        StartGame = new DebugCommand("startGame", "start a new game as host", "startGame", () => {
+            relay.CreateHost();
         });
-        JoinGame = new DebugCommand<string>("joinGame", "join a game as client with a join code", "joinGame <string joinCode>", (string joinCode) =>
-        {
-            Relay.instance.JoinRelay(joinCode);
+        JoinGame = new DebugCommand<string>("joinGame", "join a game as client with a join code", "joinGame <string joinCode>", (string joinCode) => {
+            relay.JoinGame(joinCode);
         });
-        Dissconnect = new DebugCommand("dissconnect", "dissconnect from current game", "dissconnect", () =>
-        {
+        Dissconnect = new DebugCommand("dissconnect", "dissconnect from current game", "dissconnect", () => {
             NetworkManager.Singleton.Shutdown();
         });
 
 
         //command indexing
-        commandList = new List<object>
-        {
+        commandList = new List<object> {
             ShowHelp,
             StartGame,
             JoinGame,
@@ -69,28 +70,23 @@ public class DebugController : MonoBehaviour
         };
     }
 
-    private void Update()
-    {
+    private void Update() {
         //toggle console with the ` key
         if (Input.GetKeyDown(KeyCode.BackQuote)) ToggleConsole();
     }
 
-    public void ToggleConsole()
-    {
+    public void ToggleConsole() {
         showConsole = !showConsole;
 
-        if (showConsole)
-        {
+        if (showConsole) {
             focusTextField = true;//set focus next frame
         }
-        else
-        {
+        else {
             GUI.FocusControl(null);//remove focus when closing
         }
     }
 
-    private void OnGUI()
-    {
+    private void OnGUI() {
         if (!showConsole) return;
 
         //scale gui based on ref res
@@ -99,38 +95,34 @@ public class DebugController : MonoBehaviour
         GUI.matrix = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, new Vector3(scaleX, scaleY, 1));
 
         //check for ` key to close console
-        if (Event.current.type == EventType.KeyDown && Event.current.keyCode == KeyCode.BackQuote)
-        {
+        if (Event.current.type == EventType.KeyDown && Event.current.keyCode == KeyCode.BackQuote) {
             ToggleConsole();
             return;
         }
 
         //check for enter key to process input
-        if (Event.current.type == EventType.KeyDown && Event.current.keyCode == KeyCode.Return)
-        {
+        if (Event.current.type == EventType.KeyDown && Event.current.keyCode == KeyCode.Return) {
             ToggleConsole();
             ProcessInput(input);
             input = "";//clear input after execution
             return;
         }
 
-        if (Event.current.type == EventType.KeyDown && Event.current.keyCode == KeyCode.Tab)
-        {
+        if (Event.current.type == EventType.KeyDown && Event.current.keyCode == KeyCode.Tab) {
             HandleAutoComplete();
             Event.current.Use();//stop tab from focusing next control
         }
 
         float y = (Screen.height / scaleY) - consoleHeight;
 
-        if (showHelp)//draw help box
-        {
+        //draw help box
+        if (showHelp) {
             GUI.Box(new Rect(0, y - 100, referenceResolution.x, 100), "");
             Rect viewport = new Rect(0, 0, referenceResolution.x - 30, 20 * commandList.Count);
 
             scrollPos = GUI.BeginScrollView(new Rect(0, y - 100, referenceResolution.x, 90), scrollPos, viewport);
 
-            for (int i = 0; i < commandList.Count; i++)
-            {
+            for (int i = 0; i < commandList.Count; i++) {
                 BaseDebugCommand command = commandList[i] as BaseDebugCommand;
 
                 string lable = $"{command.commandFormat} - {command.commandDescription}";
@@ -140,7 +132,7 @@ public class DebugController : MonoBehaviour
             }
 
             GUI.EndScrollView();
-        }
+    }
 
         //draw console background and text field
         GUI.Box(new Rect(0, y, referenceResolution.x, 30), "");
@@ -149,15 +141,14 @@ public class DebugController : MonoBehaviour
 
         UpdateAutoCompleteSuggestion();//update suggestion based on current input
 
-        if (focusTextField)//force focus on txt field when console opens
-        {
+        //force focus on txt field when console opens
+        if (focusTextField) {
             GUI.FocusControl("ConsoleInput");
             focusTextField = false;
         }
 
         //auto complete suggestion display
-        if (!string.IsNullOrEmpty(autoCompleteSuggestion) && autoCompleteSuggestion.StartsWith(input) && input.Length > 0)
-        {
+        if (!string.IsNullOrEmpty(autoCompleteSuggestion) && autoCompleteSuggestion.StartsWith(input) && input.Length > 0) {
             var textSize = GUI.skin.textField.CalcSize(new GUIContent(input));
             GUI.color = new Color(1f, 1f, 1f, 0.3f);//make suggestion faint
             GUI.Label(new Rect(10 + textSize.x + 2, y + 5, 300, 20), autoCompleteSuggestion.Substring(input.Length));
@@ -165,21 +156,16 @@ public class DebugController : MonoBehaviour
         }
     }
 
-    private void ProcessInput(string input)
-    {
+    private void ProcessInput(string input) {
         string[] properties = input.Split(' ');//split input into properties
 
-        for (int i = 0; i < commandList.Count; i++)
-        {
+        for (int i = 0; i < commandList.Count; i++) {
             BaseDebugCommand commandBase = commandList[i] as BaseDebugCommand;//cast to base to access commandId
 
             //command execution depends on type provided
-            if (input.Contains(commandBase.commandId)) // check if input contains command id
-            {
-                try
-                {
-                    switch (commandList[i])
-                    {
+            if (input.Contains(commandBase.commandId)) {
+                try {
+                    switch (commandList[i]) {
                         case DebugCommand cmd:
                             cmd.Execute();
                             break;
@@ -199,47 +185,34 @@ public class DebugController : MonoBehaviour
                         case DebugCommand<bool> cmdBool:
                             cmdBool.Execute(bool.Parse(properties[1]));
                             break;
-
-                        default:
-                            Debug.LogError("command not found or invalid command format");
-                            break;
                     }
                 }
-                catch
-                {
-                    Debug.LogError("invalid command parameters");
+                catch {
+                    Debug.LogError("command not found or invalid command format");
                 }
             }
         }
     }
 
     //auto complete handling
-    private void UpdateAutoCompleteSuggestion()
-    {
-        if (string.IsNullOrWhiteSpace(input))
-        {
+    private void UpdateAutoCompleteSuggestion() {
+        if (string.IsNullOrWhiteSpace(input)) {
             autoCompleteSuggestion = "";
             return;
         }
 
-        //get all possible matches based on what the user has typed
-        var matches = commandList
-            .Select(c => (c as BaseDebugCommand).commandId)
-            .Where(id => id.StartsWith(input, System.StringComparison.OrdinalIgnoreCase))
-            .ToList();
+        //get all possible matches based on input
+        var matches = commandList.Select(c => (c as BaseDebugCommand).commandId).Where(id => id.StartsWith(input, System.StringComparison.OrdinalIgnoreCase)).ToList();
 
-        if (matches.Count > 0)
-        {
-            autoCompleteSuggestion = matches[suggestionIndex % matches.Count];
+        if (matches.Count > 0) {
+            autoCompleteSuggestion = matches[suggestionIndex % matches.Count];//wrap around
         }
-        else
-        {
+        else {
             autoCompleteSuggestion = "";
         }
     }
 
-    private void HandleAutoComplete()
-    {
+    private void HandleAutoComplete() {
         if (string.IsNullOrEmpty(autoCompleteSuggestion)) return;
 
         input = autoCompleteSuggestion;//fill in the suggestion
@@ -251,11 +224,10 @@ public class DebugController : MonoBehaviour
 
         //set text cursor to end of input
         TextEditor te = (TextEditor)GUIUtility.GetStateObject(typeof(TextEditor), GUIUtility.keyboardControl);
-        if (te != null)
-        {
+        if (te != null) {
             te.text = input;
             te.cursorIndex = input.Length;
-            te.selectIndex = input.Length;//remove any selection and place caret at end
+            te.selectIndex = input.Length;
         }
     }
 }

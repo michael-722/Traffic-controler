@@ -45,4 +45,4 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   referenceResolution: {x: 1920, y: 1080}
-  consoleScale: 2.5
+  consoleScale: 2
