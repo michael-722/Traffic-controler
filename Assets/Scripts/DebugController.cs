@@ -24,7 +24,7 @@ public class DebugController : MonoBehaviour
 
     public static DebugCommand ShowHelp;
 
-    public static DebugCommand StartGame;
+    public static DebugCommand HostGame;
     public static DebugCommand<string> JoinGame;
     public static DebugCommand Dissconnect;
 
@@ -50,21 +50,21 @@ public class DebugController : MonoBehaviour
             showHelp = !showHelp;
         });
 
-        StartGame = new DebugCommand("startGame", "start a new game as host", "startGame", () => {
+        HostGame = new DebugCommand("hostGame", "start a new game as host", "hostGame", () => {
             relay.CreateHost();
         });
         JoinGame = new DebugCommand<string>("joinGame", "join a game as client with a join code", "joinGame <string joinCode>", (string joinCode) => {
             relay.JoinGame(joinCode);
         });
         Dissconnect = new DebugCommand("dissconnect", "dissconnect from current game", "dissconnect", () => {
-            NetworkManager.Singleton.Shutdown();
+            relay.Dissconnect();
         });
 
 
         //command indexing
         commandList = new List<object> {
             ShowHelp,
-            StartGame,
+            HostGame,
             JoinGame,
             Dissconnect
         };

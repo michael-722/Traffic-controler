@@ -81,4 +81,9 @@ public class Relay : MonoBehaviour
             Debug.LogError($"failed to join relay: {e.Message}");
         }
     }
+
+    public void Dissconnect()
+    {
+        NetworkManager.Singleton.Shutdown();
+    }
 }

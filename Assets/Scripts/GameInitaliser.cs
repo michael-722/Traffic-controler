@@ -5,10 +5,10 @@ public class GameInitaliser : MonoBehaviour
 {
     private void OnEnable()
     {
-        StartCoroutine(FindRefs());
+        StartCoroutine(SetUpListener());
     }
 
-    private IEnumerator FindRefs()
+    private IEnumerator SetUpListener()
     {
         Relay relay = null;
         UIManager ui = null;
@@ -23,6 +23,7 @@ public class GameInitaliser : MonoBehaviour
 
         ui.OnStartHostPressed += relay.CreateHost;
         ui.OnStartClientPressed += relay.JoinGame;
+        ui.OnDissconnectPressed += relay.Dissconnect;
 
         relay.joinCodeCreated += ui.DisplayJoinCode;
     }
