@@ -4,7 +4,8 @@ using UnityEngine.UI;
 
 public class TrafficLightController : MonoBehaviour
 {
-    [SerializeField] private float lightChangeDelay = 0.5f;
+    [SerializeField] private float lightChangeDelay = 0.75f;
+    [SerializeField] private float intensity = 30.0f;
 
     private TrafficLightState currentState = TrafficLightState.Red;
     private bool isChanging = false;
@@ -114,7 +115,7 @@ public class TrafficLightController : MonoBehaviour
         if (enable)
         {
             renderer.material.EnableKeyword("_EMISSION");
-            renderer.material.SetColor("_EmissionColor", emissionColor * 10);
+            renderer.material.SetColor("_EmissionColor", emissionColor * intensity);
         }
         else
         {
