@@ -561,6 +561,7 @@ GameObject:
   - component: {fileID: 330585545}
   - component: {fileID: 330585544}
   - component: {fileID: 330585547}
+  - component: {fileID: 330585548}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -686,17 +687,37 @@ MonoBehaviour:
     m_MipBias: 0
     m_VarianceClampScale: 0.9
     m_ContrastAdaptiveSharpening: 0
+--- !u!114 &330585548
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 330585543}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ae4e6a22a9125964a9bb5af6327050a7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  dragSpeed: 15
+  zoomSpeed: 150
+  minZoom: 35
+  maxZoom: 125
 --- !u!1001 &346177105
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Modification:
     serializedVersion: 3
-    m_TransformParent: {fileID: 0}
+    m_TransformParent: {fileID: 1574785201}
     m_Modifications:
     - target: {fileID: 3308623311058759991, guid: ef70e3341a497f044876331802c640d1, type: 3}
       propertyPath: m_Name
       value: TrafficLight
+      objectReference: {fileID: 0}
+    - target: {fileID: 7031067191866118254, guid: ef70e3341a497f044876331802c640d1, type: 3}
+      propertyPath: intensity
+      value: 30
       objectReference: {fileID: 0}
     - target: {fileID: 8014566096265948610, guid: ef70e3341a497f044876331802c640d1, type: 3}
       propertyPath: m_LocalPosition.x
@@ -793,7 +814,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!108 &410087040
 Light:
   m_ObjectHideFlags: 0
@@ -1373,11 +1394,15 @@ PrefabInstance:
   serializedVersion: 2
   m_Modification:
     serializedVersion: 3
-    m_TransformParent: {fileID: 0}
+    m_TransformParent: {fileID: 1574785201}
     m_Modifications:
     - target: {fileID: 3308623311058759991, guid: ef70e3341a497f044876331802c640d1, type: 3}
       propertyPath: m_Name
       value: TrafficLight (1)
+      objectReference: {fileID: 0}
+    - target: {fileID: 7031067191866118254, guid: ef70e3341a497f044876331802c640d1, type: 3}
+      propertyPath: intensity
+      value: 30
       objectReference: {fileID: 0}
     - target: {fileID: 8014566096265948610, guid: ef70e3341a497f044876331802c640d1, type: 3}
       propertyPath: m_LocalPosition.x
@@ -1385,7 +1410,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8014566096265948610, guid: ef70e3341a497f044876331802c640d1, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -0
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8014566096265948610, guid: ef70e3341a497f044876331802c640d1, type: 3}
       propertyPath: m_LocalPosition.z
@@ -2423,6 +2448,11 @@ Transform:
   - {fileID: 580447254}
   m_Father: {fileID: 354396208}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!4 &1458015411 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 8014566096265948610, guid: ef70e3341a497f044876331802c640d1, type: 3}
+  m_PrefabInstance: {fileID: 835257415}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1574785199
 GameObject:
   m_ObjectHideFlags: 0
@@ -2466,6 +2496,8 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1350141604}
+  - {fileID: 1695288663}
+  - {fileID: 1458015411}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1597640957
@@ -2735,6 +2767,11 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1683828726}
   m_CullTransparentMesh: 1
+--- !u!4 &1695288663 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 8014566096265948610, guid: ef70e3341a497f044876331802c640d1, type: 3}
+  m_PrefabInstance: {fileID: 346177105}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1729418854
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3478,6 +3515,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: TrafficLight
       objectReference: {fileID: 0}
+    - target: {fileID: 7031067191866118254, guid: ef70e3341a497f044876331802c640d1, type: 3}
+      propertyPath: intensity
+      value: 30
+      objectReference: {fileID: 0}
     - target: {fileID: 8014566096265948610, guid: ef70e3341a497f044876331802c640d1, type: 3}
       propertyPath: m_LocalPosition.x
       value: 7.9
@@ -3595,5 +3636,3 @@ SceneRoots:
   - {fileID: 832575519}
   - {fileID: 354396208}
   - {fileID: 1574785201}
-  - {fileID: 346177105}
-  - {fileID: 835257415}

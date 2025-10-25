@@ -2,6 +2,13 @@ using UnityEngine;
 using System.Collections;
 using UnityEngine.UI;
 
+public enum TrafficLightState
+{
+    Red,
+    Yellow,
+    Green
+}
+
 public class TrafficLightController : MonoBehaviour
 {
     [SerializeField] private float lightChangeDelay = 0.75f;
@@ -123,11 +130,4 @@ public class TrafficLightController : MonoBehaviour
             renderer.material.SetColor("_EmissionColor", Color.black);
         }
     }
-}
-
-public enum TrafficLightState
-{
-    Red,
-    Yellow,
-    Green
 }
