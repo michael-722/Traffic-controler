@@ -1,24 +1,28 @@
-using UnityEngine;
 using System.Collections.Generic;
+using Unity.VisualScripting;
+using UnityEngine;
 
 public enum JunctionDirection { Up, Down, Left, Right }
 
 public class JunctionController : MonoBehaviour
 {
-    private Dictionary<JunctionDirection, GameObject> junctionMap = new Dictionary<JunctionDirection, GameObject>();
+    public Dictionary<JunctionDirection, GameObject> junctionMap = new Dictionary<JunctionDirection, GameObject>();
 
     void Start()
     {
         foreach (Transform child in transform)
         {
             //Debug.Log("checking: " + child.name);
-            TrafficLightController tl = child.GetComponent<TrafficLightController>();
-            if (tl != null)
+            //if there is a traffic light road or a road with no traffic light
+            if (child.GetComponent<TrafficLightController>() != null || child.GetComponent<NoTrafficLightTurning>() != null)
             {
+                if (child.gameObject.activeInHierarchy == false) return;//testing
+
                 Vector3 localPos = child.localPosition;
                 JunctionDirection dir = GetDirectionFromPosition(localPos);
                 junctionMap[dir] = child.gameObject;
-                //Debug.Log(child.name + dir);   
+
+                Debug.Log("traffic light found " + child.name + dir);
             }
         }
     }

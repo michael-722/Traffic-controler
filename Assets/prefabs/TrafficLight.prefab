@@ -225,6 +225,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   lightChangeDelay: 0.75
+  intensity: 2
   greenLightMat: {fileID: 2100000, guid: 90d0838186000a04297895e10cba1679, type: 2}
   yellowLightMat: {fileID: 2100000, guid: 547fc5e08e2fbf449ab6137abc94b3d8, type: 2}
   redLightMat: {fileID: 2100000, guid: b1c008150cb2eff4e8c75731fbf4342c, type: 2}
@@ -267,7 +268,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 1.75, y: 5.25}
-  m_SizeDelta: {x: 1920, y: 1080}
+  m_SizeDelta: {x: 2, y: 2}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!223 &5498633060803616057
 Canvas:

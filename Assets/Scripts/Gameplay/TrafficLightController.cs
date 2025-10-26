@@ -130,4 +130,9 @@ public class TrafficLightController : MonoBehaviour
             renderer.material.SetColor("_EmissionColor", Color.black);
         }
     }
+
+    public TrafficLightState GetCurrentState()
+    {
+        return currentState;
+    }
 }
