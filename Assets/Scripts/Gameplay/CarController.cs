@@ -4,10 +4,11 @@ using System.Collections.Generic;
 
 public class CarController : MonoBehaviour
 {
-    [SerializeField] private float driveSpeed = 5f;
+    [SerializeField] private float driveSpeed = 7.5f;
+    [SerializeField] private float turnSpeed = 2.0f;
 
-    [SerializeField] private float leftTurnDist = 5.0f;
-    [SerializeField] private float rightTurnDist = 5.0f;
+    [SerializeField] private float roadWidth = 7.5f;
+    [SerializeField] private float carWidth = 4.0f;
 
     private Rigidbody rb;
     private bool waitingAtLight = false;
@@ -35,10 +36,15 @@ public class CarController : MonoBehaviour
         //check if is junction trigger
         if (trigger.transform.name.EndsWith("Trigger"))
         {
-            currentJunction = trigger.transform.root.GetComponent<JunctionController>();
-            if (currentJunction == null) return;
+            currentJunction = trigger.gameObject.GetComponentInParent<JunctionController>();
+            if (currentJunction == null)
+            {   
+                Debug.LogError("junction controller not found on obj");
+                return;
+            }
 
             entryDirection = GetDirectionFromTrigger(trigger.name);
+            Debug.Log($"{name} entered junction from {entryDirection} via trigger {trigger.name}");
 
             //find traffic light
             Transform lightsParent = trigger.transform.parent.parent;//get junction obj
@@ -48,12 +54,12 @@ public class CarController : MonoBehaviour
 
             foreach (TrafficLightController light in lights)
             {
-                Vector3 dirTrigger = trigger.transform.forward;
                 Vector3 lightForward = light.transform.forward;
 
-                float dot = Vector3.Dot(lightForward, dirTrigger);
+                //flipped bc lights are roted 180
+                Vector3 expectedLightDir = -GetWorldDirection(entryDirection);
 
-                //Debug.Log($"{trigger.name} checking {light.name} dot={dot}");
+                float dot = Vector3.Dot(lightForward.normalized, expectedLightDir.normalized);
 
                 /* traffic lights are rotated 180 - if fixed must chage dot to -dot
                  * 
@@ -65,6 +71,7 @@ public class CarController : MonoBehaviour
                 if (dot > 0.8f)
                 {
                     currentLight = light;
+                    //Debug.Log($"{name} found traffic light {light.name} for trigger {trigger.name}");
                     break;
                 }
             }
@@ -73,7 +80,6 @@ public class CarController : MonoBehaviour
         }
     }
 
-
     private IEnumerator HandleTrafficLight()
     {
         waitingAtLight = true;
@@ -81,9 +87,8 @@ public class CarController : MonoBehaviour
         yield return new WaitForSeconds(0.1f);
 
         //keep checking traffic light state
-        while (true)
+        while (waitingAtLight)
         {
-
             TrafficLightState lightState = currentLight.GetCurrentState();
             //Debug.Log($"{name} sees {currentLight.name} as {lightState}");
 
@@ -93,12 +98,15 @@ public class CarController : MonoBehaviour
                 yield return null;
                 continue;
             }
-            else if (lightState == TrafficLightState.Green) break;//go
+            else if (lightState == TrafficLightState.Green)
+            {
+                waitingAtLight = false;
+                break;//go
+            }
 
             yield return null;
         }
 
-        waitingAtLight = false;
         yield return MoveThroughJunction();
     }
 
@@ -118,24 +126,23 @@ public class CarController : MonoBehaviour
 
         JunctionDirection newDir = validDirs[Random.Range(0, validDirs.Count)];
 
+        //Debug.Log("entry dir " + entryDirection + " new dir " + newDir);
+
+        //forward for turns ================need to check if dists are good over time and dont drift
         if (newDir != JunctionDirection.Up)
         {
-            if (newDir == JunctionDirection.Left)
-            {
-                yield return StartCoroutine(MoveForward(leftTurnDist, driveSpeed));
-            }
-            else
-            {   
-                yield return StartCoroutine(MoveForward(rightTurnDist, driveSpeed));
-            }
+            float turnDist = GetTurnDistance(newDir);//offset dist for turn
+            yield return StartCoroutine(MoveForward(turnDist, driveSpeed));
         }
 
         //rotate toward target dir 
-        //===============add acutal end points to fix turning
-        Vector3 targetDir = GetWorldDirection(newDir);
+        //=================add acutal end points to fix turning
+        Vector3 targetDir = GetLocalDirection(newDir);//local
 
         Quaternion targetRot = Quaternion.LookRotation(targetDir);
-        float turnSpeed = 2f;
+
+        //Debug.Log($"{name} turning from {entryDirection} to {newDir}");
+        entryDirection = newDir;
 
         while (Quaternion.Angle(transform.rotation, targetRot) > 0.5f)
         {
@@ -157,6 +164,20 @@ public class CarController : MonoBehaviour
         }
     }
 
+
+    //Need to take into account entry dir as well as new dir to give turn dist needed========================
+    //cba to fix it now this fking thing kinda works needs fixing as next thing to do tho
+    private float GetTurnDistance(JunctionDirection newDir)
+    {
+        //Debug.Log("calculating turn distance for " + newDir);
+
+        float turnRadius = (roadWidth / 2f) + (carWidth / 2f);
+
+        if (newDir == JunctionDirection.Up) return 0f;
+        if (newDir == JunctionDirection.Left) return turnRadius;
+        else return turnRadius + roadWidth;
+    }
+
     private JunctionDirection GetDirectionFromTrigger(string triggerName)
     {
         if (triggerName.Contains("Up")) return JunctionDirection.Up;
@@ -176,4 +197,58 @@ public class CarController : MonoBehaviour
             default: return Vector3.forward;
         }
     }
+
+    private Vector3 GetLocalDirection(JunctionDirection dir)
+    {
+        Vector3 localRot = transform.rotation.eulerAngles;
+
+        float angle = Mathf.Round(localRot.y / 90) * 90;//snap to 90s
+
+        switch (angle)
+        {
+            case 0f://up
+                switch (dir)
+                {
+                    case JunctionDirection.Up: return transform.forward;
+                    case JunctionDirection.Down: return -transform.forward;
+                    case JunctionDirection.Left: return -transform.right;
+                    case JunctionDirection.Right: return transform.right;
+                    default: return transform.forward;
+                }
+
+            case 90f://right
+                switch (dir)
+                {
+                    case JunctionDirection.Up: return transform.right;
+                    case JunctionDirection.Down: return -transform.right;
+                    case JunctionDirection.Left: return -transform.forward;
+                    case JunctionDirection.Right: return transform.forward;
+                    default: return transform.right;
+                }
+
+            case 180f://down
+                switch (dir)
+                {
+                    case JunctionDirection.Up: return -transform.forward;
+                    case JunctionDirection.Down: return transform.forward;
+                    case JunctionDirection.Left: return transform.right;
+                    case JunctionDirection.Right: return -transform.right;
+                    default: return -transform.forward;
+                }
+
+            case 270f://left
+                switch (dir)
+                {
+                    case JunctionDirection.Up: return transform.right;
+                    case JunctionDirection.Down: return -transform.right;
+                    case JunctionDirection.Left: return -transform.forward;
+                    case JunctionDirection.Right: return transform.forward;
+                    default: return -transform.right;
+                }
+
+            default:
+                return transform.forward;
+        }
+    }
+
 }

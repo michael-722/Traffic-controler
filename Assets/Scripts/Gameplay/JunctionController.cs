@@ -22,7 +22,7 @@ public class JunctionController : MonoBehaviour
                 JunctionDirection dir = GetDirectionFromPosition(localPos);
                 junctionMap[dir] = child.gameObject;
 
-                Debug.Log("traffic light found " + child.name + dir);
+                //Debug.Log("traffic light found " + child.name + dir);
             }
         }
     }
