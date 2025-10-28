@@ -7,8 +7,8 @@ public class CarController : MonoBehaviour
     [SerializeField] private float driveSpeed = 7.5f;
     [SerializeField] private float turnSpeed = 2.0f;
 
-    [SerializeField] private float roadWidth = 7.5f;
-    [SerializeField] private float carWidth = 4.0f;
+    private float roadWidth;
+    private float carWidth;
 
     private Rigidbody rb;
     private bool waitingAtLight = false;
@@ -17,9 +17,36 @@ public class CarController : MonoBehaviour
     private JunctionController currentJunction;
     private JunctionDirection entryDirection;
 
+    [SerializeField] private Transform roadTransform;
+
     private void Start()
     {
         rb = GetComponent<Rigidbody>();
+        carWidth = GetCarWidth();
+        roadWidth = 14f;
+
+        //only have enabled if roads need re calarating
+        //road in x dir
+        //roadWidth = GetRoadWidth(roadTransform);
+        //Debug.Log($"{name} car width: {carWidth} road width: {roadWidth}");
+    }
+
+    private float GetCarWidth()
+    {
+        Collider col = GetComponentInChildren<Collider>();
+        if (col != null) return col.bounds.size.x;
+
+        Debug.LogWarning(name + " car has no collider");
+        return 0f;
+    }
+
+    private float GetRoadWidth(Transform roadTransform)
+    {
+        Collider col = roadTransform.GetComponent<Collider>();
+        if (col != null) return col.bounds.size.x;
+
+        Debug.LogWarning("get road width failed");
+        return 0f;
     }
 
     private void FixedUpdate()
@@ -38,13 +65,14 @@ public class CarController : MonoBehaviour
         {
             currentJunction = trigger.gameObject.GetComponentInParent<JunctionController>();
             if (currentJunction == null)
-            {   
+            {
                 Debug.LogError("junction controller not found on obj");
                 return;
             }
 
             entryDirection = GetDirectionFromTrigger(trigger.name);
-            Debug.Log($"{name} entered junction from {entryDirection} via trigger {trigger.name}");
+            
+            //Debug.Log($"{name} entered junction from {entryDirection} via trigger {trigger.name}");
 
             //find traffic light
             Transform lightsParent = trigger.transform.parent.parent;//get junction obj
@@ -84,7 +112,7 @@ public class CarController : MonoBehaviour
     {
         waitingAtLight = true;
 
-        yield return new WaitForSeconds(0.1f);
+        //yield return new WaitForSeconds(0.1f);
 
         //keep checking traffic light state
         while (waitingAtLight)
@@ -110,7 +138,6 @@ public class CarController : MonoBehaviour
         yield return MoveThroughJunction();
     }
 
-
     private IEnumerator MoveThroughJunction()
     {
         //get valid dirs
@@ -126,29 +153,32 @@ public class CarController : MonoBehaviour
 
         JunctionDirection newDir = validDirs[Random.Range(0, validDirs.Count)];
 
+        float turnDist = GetTurnDistance(entryDirection, newDir);//offset dist for turn
+
         //Debug.Log("entry dir " + entryDirection + " new dir " + newDir);
+        //Debug.Log("turn dist for " + newDir + " is " + turnDist);
 
-        //forward for turns ================need to check if dists are good over time and dont drift
-        if (newDir != JunctionDirection.Up)
-        {
-            float turnDist = GetTurnDistance(newDir);//offset dist for turn
-            yield return StartCoroutine(MoveForward(turnDist, driveSpeed));
-        }
+        yield return StartCoroutine(MoveForward(turnDist, driveSpeed));
 
-        //rotate toward target dir 
-        //=================add acutal end points to fix turning
-        Vector3 targetDir = GetLocalDirection(newDir);//local
+        //rotate toward target dir
+        float turnAngle = GetTurnAngle(entryDirection, newDir);
 
-        Quaternion targetRot = Quaternion.LookRotation(targetDir);
+        Quaternion targetRot = Quaternion.Euler(0f, transform.eulerAngles.y + turnAngle, 0f);
+        
+        //Debug.Log("target rot for " + newDir + " is " + targetRot.eulerAngles);
 
-        //Debug.Log($"{name} turning from {entryDirection} to {newDir}");
         entryDirection = newDir;
 
-        while (Quaternion.Angle(transform.rotation, targetRot) > 0.5f)
+        while (Quaternion.Angle(transform.rotation, targetRot) > 0.2f)
         {
             transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, turnSpeed * Time.deltaTime);
             yield return null;
         }
+
+        //correct rotation closest 90
+        Vector3 euler = transform.eulerAngles;
+        euler.y = Mathf.Round(euler.y / 90f) * 90f;
+        transform.eulerAngles = euler;
     }
 
     private IEnumerator MoveForward(float distance, float speed)
@@ -164,18 +194,37 @@ public class CarController : MonoBehaviour
         }
     }
 
-
-    //Need to take into account entry dir as well as new dir to give turn dist needed========================
-    //cba to fix it now this fking thing kinda works needs fixing as next thing to do tho
-    private float GetTurnDistance(JunctionDirection newDir)
+    private float GetTurnDistance(JunctionDirection entryDir, JunctionDirection newDir)
     {
-        //Debug.Log("calculating turn distance for " + newDir);
+        float laneOffset = carWidth / 2f;//lane center 
+        float turnRadius = roadWidth / 2f;//turning rad
 
-        float turnRadius = (roadWidth / 2f) + (carWidth / 2f);
+        //Debug.Log("lane offset: " + laneOffset + " turn radius: " + turnRadius);
 
-        if (newDir == JunctionDirection.Up) return 0f;
-        if (newDir == JunctionDirection.Left) return turnRadius;
-        else return turnRadius + roadWidth;
+        if (newDir == entryDir) return 0f;//straight
+
+        switch (entryDir)
+        {
+            case JunctionDirection.Up:
+                if (newDir == JunctionDirection.Left) return roadWidth;//tight right turn
+                if (newDir == JunctionDirection.Right) return turnRadius;//wide left
+                break;
+            case JunctionDirection.Down://correct
+                if (newDir == JunctionDirection.Left) return turnRadius;//tight left turn
+                if (newDir == JunctionDirection.Right) return roadWidth;//wide right
+                break;
+
+            case JunctionDirection.Left:
+                if (newDir == JunctionDirection.Up) return turnRadius;//tight left turn
+                if (newDir == JunctionDirection.Down) return roadWidth;//wide right
+                break;
+            case JunctionDirection.Right:
+                if (newDir == JunctionDirection.Down) return turnRadius;//tight left turn
+                if (newDir == JunctionDirection.Up) return roadWidth;//wide right
+                break;
+        }
+
+        return 0f;
     }
 
     private JunctionDirection GetDirectionFromTrigger(string triggerName)
@@ -198,57 +247,46 @@ public class CarController : MonoBehaviour
         }
     }
 
-    private Vector3 GetLocalDirection(JunctionDirection dir)
+    private float GetTurnAngle(JunctionDirection entry, JunctionDirection target)
     {
-        Vector3 localRot = transform.rotation.eulerAngles;
-
-        float angle = Mathf.Round(localRot.y / 90) * 90;//snap to 90s
-
-        switch (angle)
+        switch (entry)
         {
-            case 0f://up
-                switch (dir)
+            case JunctionDirection.Up:
+                switch (target)
                 {
-                    case JunctionDirection.Up: return transform.forward;
-                    case JunctionDirection.Down: return -transform.forward;
-                    case JunctionDirection.Left: return -transform.right;
-                    case JunctionDirection.Right: return transform.right;
-                    default: return transform.forward;
+                    case JunctionDirection.Left: return 90f;
+                    case JunctionDirection.Right: return -90f;
+                    case JunctionDirection.Down: return 180f;
                 }
+                break;
 
-            case 90f://right
-                switch (dir)
+            case JunctionDirection.Down:
+                switch (target)
                 {
-                    case JunctionDirection.Up: return transform.right;
-                    case JunctionDirection.Down: return -transform.right;
-                    case JunctionDirection.Left: return -transform.forward;
-                    case JunctionDirection.Right: return transform.forward;
-                    default: return transform.right;
+                    case JunctionDirection.Left: return -90f;
+                    case JunctionDirection.Right: return 90f;
+                    case JunctionDirection.Up: return 0f;
                 }
+                break;
 
-            case 180f://down
-                switch (dir)
+            case JunctionDirection.Left:
+                switch (target)
                 {
-                    case JunctionDirection.Up: return -transform.forward;
-                    case JunctionDirection.Down: return transform.forward;
-                    case JunctionDirection.Left: return transform.right;
-                    case JunctionDirection.Right: return -transform.right;
-                    default: return -transform.forward;
+                    case JunctionDirection.Up: return -90f;
+                    case JunctionDirection.Down: return 90f;
+                    case JunctionDirection.Right: return 0f;
                 }
+                break;
 
-            case 270f://left
-                switch (dir)
+            case JunctionDirection.Right:
+                switch (target)
                 {
-                    case JunctionDirection.Up: return transform.right;
-                    case JunctionDirection.Down: return -transform.right;
-                    case JunctionDirection.Left: return -transform.forward;
-                    case JunctionDirection.Right: return transform.forward;
-                    default: return -transform.right;
+                    case JunctionDirection.Up: return 90f;
+                    case JunctionDirection.Down: return -90f;
+                    case JunctionDirection.Left: return 0f;
                 }
-
-            default:
-                return transform.forward;
+                break;
         }
+        return 0f;
     }
-
 }
