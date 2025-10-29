@@ -7,9 +7,13 @@ using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
 using System;
 
+//to cal ping save time msg sent and then time recieve response then t1 - t0 gives ping 
+
 public class Relay : MonoBehaviour
 {
     public event Action<string> joinCodeCreated;
+
+    private int connectedPlayerCount = 0;
 
     private async void Awake()
     {
@@ -82,8 +86,21 @@ public class Relay : MonoBehaviour
         }
     }
 
+    [ServerRpc]
+    public int GetConnectedPlayerCountServerRpc()
+    {
+        return connectedPlayerCount;
+    }
+
+    [ServerRpc]
+    public void SetConnectedPlayerCountServerRpc(int num)
+    {
+        connectedPlayerCount += num;
+    }
+
     public void Dissconnect()
     {
+        SetConnectedPlayerCountServerRpc(-1);
         NetworkManager.Singleton.Shutdown();
     }
 }

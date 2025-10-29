@@ -1,24 +1,43 @@
 using UnityEngine;
 using System;
 using TMPro;
+using Unity.Netcode;
 
 public class UIManager : MonoBehaviour
 {
     public event Action<string> OnStartClientPressed;
     public event Action OnStartHostPressed;
     public event Action OnDissconnectPressed;
+    //public event Action //get players connected from relay================================================
 
     [SerializeField] private TMP_InputField joinCodeInput;
     [SerializeField] private TMP_Text joinCodeDisplay;
+    [SerializeField] private TMP_Text playersConnectedCount;
+
+    public bool hostUIActive = false;
 
     public void StartHostBtn()
     {
         OnStartHostPressed?.Invoke();
     }
 
+    [ServerRpc]
+    public void UpdateConnectedPlayerCountServerRpc()
+    {
+        playersConnectedCount.text = "temp";
+    }
+
+    public void StartGamePressed()
+    {
+    
+    }
+
     public void StartClientBtn()
     {
         OnStartClientPressed?.Invoke(joinCodeInput.text.Trim());
+        //need to wait till connection is set bc rn client is server so runs locally
+
+        UpdateConnectedPlayerCountServerRpc();
     }
 
     public void DissconnectBtn()

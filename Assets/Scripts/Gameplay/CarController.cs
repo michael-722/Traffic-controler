@@ -162,7 +162,6 @@ public class CarController : MonoBehaviour
 
         //rotate toward target dir
         float turnAngle = GetTurnAngle(entryDirection, newDir);
-
         Quaternion targetRot = Quaternion.Euler(0f, transform.eulerAngles.y + turnAngle, 0f);
         
         //Debug.Log("target rot for " + newDir + " is " + targetRot.eulerAngles);

@@ -1,8 +1,12 @@
 using System.Collections;
+using Unity.Netcode;
 using UnityEngine;
 
 public class GameInitaliser : MonoBehaviour
 {
+    private Relay relay = null;
+    private UIManager ui = null;
+
     private void OnEnable()
     {
         StartCoroutine(SetUpListener());
@@ -10,9 +14,6 @@ public class GameInitaliser : MonoBehaviour
 
     private IEnumerator SetUpListener()
     {
-        Relay relay = null;
-        UIManager ui = null;
-
         while (relay == null || ui == null)
         {
             relay = FindFirstObjectByType<Relay>();
@@ -26,5 +27,7 @@ public class GameInitaliser : MonoBehaviour
         ui.OnDissconnectPressed += relay.Dissconnect;
 
         relay.joinCodeCreated += ui.DisplayJoinCode;
+
+        NetworkManager.Singleton.OnClientStarted += ui.UpdateConnectedPlayerCountServerRpc;
     }
 }
