@@ -6,7 +6,6 @@ using Unity.Services.Relay.Models;
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
 using System;
-using NUnit.Framework;
 using System.Collections.Generic;
 
 //to cal ping save time msg sent and then time recieve response then t1 - t0 gives ping 
@@ -104,6 +103,7 @@ public class Relay : MonoBehaviour
             connectedPlayerIds.Add(id);
             connectedPlayerCountChange?.Invoke(connectedPlayerIds.Count);
         }
+        else Debug.LogWarning($"player {id} is already connected");
     }
 
     [ServerRpc]
@@ -115,5 +115,6 @@ public class Relay : MonoBehaviour
             connectedPlayerIds.Remove(id);
             connectedPlayerCountChange?.Invoke(connectedPlayerIds.Count);
         }
+        else Debug.LogWarning($"player {id} has already disconnected");
     }
 }
