@@ -26,7 +26,6 @@ public class DebugController : MonoBehaviour
 
     public static DebugCommand HostGame;
     public static DebugCommand<string> JoinGame;
-    public static DebugCommand Dissconnect;
 
     public List<object> commandList;
 
@@ -56,9 +55,6 @@ public class DebugController : MonoBehaviour
         JoinGame = new DebugCommand<string>("joinGame", "join a game as client with a join code", "joinGame <string joinCode>", (string joinCode) => {
             relay.JoinGame(joinCode);
         });
-        Dissconnect = new DebugCommand("dissconnect", "dissconnect from current game", "dissconnect", () => {
-            relay.Dissconnect();
-        });
 
 
         //command indexing
@@ -66,7 +62,6 @@ public class DebugController : MonoBehaviour
             ShowHelp,
             HostGame,
             JoinGame,
-            Dissconnect
         };
     }
 

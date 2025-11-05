@@ -21,12 +21,6 @@ public class UIManager : MonoBehaviour
         OnStartHostPressed?.Invoke();
     }
 
-    [ServerRpc]
-    public void UpdateConnectedPlayerCountServerRpc()
-    {
-        playersConnectedCount.text = "temp";
-    }
-
     public void StartGamePressed()
     {
     
@@ -36,8 +30,6 @@ public class UIManager : MonoBehaviour
     {
         OnStartClientPressed?.Invoke(joinCodeInput.text.Trim());
         //need to wait till connection is set bc rn client is server so runs locally
-
-        UpdateConnectedPlayerCountServerRpc();
     }
 
     public void DissconnectBtn()
@@ -48,5 +40,10 @@ public class UIManager : MonoBehaviour
     public void DisplayJoinCode(string code)
     {
         joinCodeDisplay.text = "Join code:" + code;
+    }
+
+    public void UpdateConnectedPlayerCount(int num)
+    {
+        playersConnectedCount.text = "Players connected: " + (num - 1);
     }
 }

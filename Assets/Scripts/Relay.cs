@@ -6,14 +6,18 @@ using Unity.Services.Relay.Models;
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
 using System;
+using NUnit.Framework;
+using System.Collections.Generic;
 
 //to cal ping save time msg sent and then time recieve response then t1 - t0 gives ping 
 
 public class Relay : MonoBehaviour
 {
     public event Action<string> joinCodeCreated;
+    public event Action<int> connectedPlayerCountChange;
 
     private int connectedPlayerCount = 0;
+    private List<ulong> connectedPlayerIds = new List<ulong>();
 
     private async void Awake()
     {
@@ -86,21 +90,30 @@ public class Relay : MonoBehaviour
         }
     }
 
-    [ServerRpc]
-    public int GetConnectedPlayerCountServerRpc()
+    public void Dissconect()
     {
-        return connectedPlayerCount;
-    }
-
-    [ServerRpc]
-    public void SetConnectedPlayerCountServerRpc(int num)
-    {
-        connectedPlayerCount += num;
-    }
-
-    public void Dissconnect()
-    {
-        SetConnectedPlayerCountServerRpc(-1);
         NetworkManager.Singleton.Shutdown();
+    }
+
+    [ServerRpc]
+    public void Connection(ulong id)
+    {
+        if (!connectedPlayerIds.Contains(id))
+        {
+            //Debug.Log("connected with id: " +  id);
+            connectedPlayerIds.Add(id);
+            connectedPlayerCountChange?.Invoke(connectedPlayerIds.Count);
+        }
+    }
+
+    [ServerRpc]
+    public void Dissconnection(ulong id)
+    {
+        if (connectedPlayerIds.Contains(id))
+        {
+            //Debug.Log("dissconeted player id: " + id);
+            connectedPlayerIds.Remove(id);
+            connectedPlayerCountChange?.Invoke(connectedPlayerIds.Count);
+        }
     }
 }
