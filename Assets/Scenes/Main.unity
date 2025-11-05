@@ -340,7 +340,7 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
-      - m_Target: {fileID: 0}
+      - m_Target: {fileID: 1140890903}
         m_TargetAssemblyTypeName: UIManager, Assembly-CSharp
         m_MethodName: StartClientBtn
         m_Mode: 1
@@ -867,7 +867,7 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
-      - m_Target: {fileID: 0}
+      - m_Target: {fileID: 1140890903}
         m_TargetAssemblyTypeName: UIManager, Assembly-CSharp
         m_MethodName: DissconnectBtn
         m_Mode: 1
@@ -2938,7 +2938,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
+      - m_Target: {fileID: 1140890903}
         m_TargetAssemblyTypeName: UIManager, Assembly-CSharp
         m_MethodName: StartHostBtn
         m_Mode: 1
@@ -3521,6 +3521,7 @@ MonoBehaviour:
   joinCodeInput: {fileID: 594478586}
   joinCodeDisplay: {fileID: 1907810990}
   playersConnectedCount: {fileID: 1964024077}
+  joinedWaiting: {fileID: 806350370}
   hostUIActive: 0
 --- !u!4 &1152180317 stripped
 Transform:
@@ -4917,7 +4918,7 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
-      - m_Target: {fileID: 0}
+      - m_Target: {fileID: 1140890903}
         m_TargetAssemblyTypeName: UIManager, Assembly-CSharp
         m_MethodName: DissconnectBtn
         m_Mode: 1

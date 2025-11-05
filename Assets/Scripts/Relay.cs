@@ -7,6 +7,7 @@ using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 //to cal ping save time msg sent and then time recieve response then t1 - t0 gives ping 
 
@@ -14,9 +15,11 @@ public class Relay : MonoBehaviour
 {
     public event Action<string> joinCodeCreated;
     public event Action<int> connectedPlayerCountChange;
+    public event Action<string> hostDissconnected;
 
-    private int connectedPlayerCount = 0;
     private List<ulong> connectedPlayerIds = new List<ulong>();
+
+    private ulong serverID;
 
     private async void Awake()
     {
@@ -38,13 +41,12 @@ public class Relay : MonoBehaviour
 
     public async void CreateHost()
     {
-        //Debug.Log("created host");
         try
         {
-            Allocation allocation = await RelayService.Instance.CreateAllocationAsync(3);
+            Allocation allocation = await RelayService.Instance.CreateAllocationAsync(3);//max 4 players
 
             string joinCode = await RelayService.Instance.GetJoinCodeAsync(allocation.AllocationId);
-            Debug.Log($"join code: {joinCode}");
+            //Debug.Log($"join code: {joinCode}");
 
             joinCodeCreated?.Invoke(joinCode);
 
@@ -57,6 +59,7 @@ public class Relay : MonoBehaviour
                 allocation.ConnectionData);
 
             NetworkManager.Singleton.StartHost();
+            serverID = NetworkManager.ServerClientId;
         }
         catch (System.Exception e)
         {
@@ -94,7 +97,16 @@ public class Relay : MonoBehaviour
         NetworkManager.Singleton.Shutdown();
     }
 
-    [ServerRpc]
+    public async void HostDissconect()
+    {
+        for (int i = 1; i < connectedPlayerIds.Count; i--)
+        {
+            NetworkManager.Singleton.DisconnectClient(connectedPlayerIds[i]);
+        }
+        await Task.Delay(1000);
+        NetworkManager.Singleton.Shutdown();
+    }
+
     public void Connection(ulong id)
     {
         if (!connectedPlayerIds.Contains(id))
@@ -106,9 +118,9 @@ public class Relay : MonoBehaviour
         else Debug.LogWarning($"player {id} is already connected");
     }
 
-    [ServerRpc]
     public void Dissconnection(ulong id)
     {
+        
         if (connectedPlayerIds.Contains(id))
         {
             //Debug.Log("dissconeted player id: " + id);

@@ -8,11 +8,13 @@ public class UIManager : MonoBehaviour
     public event Action<string> OnStartClientPressed;
     public event Action OnStartHostPressed;
     public event Action OnDissconnectPressed;
+    public event Action OnHostDissconnectPressed;
     //public event Action //get players connected from relay================================================
 
     [SerializeField] private TMP_InputField joinCodeInput;
     [SerializeField] private TMP_Text joinCodeDisplay;
     [SerializeField] private TMP_Text playersConnectedCount;
+    [SerializeField] private TMP_Text joinedWaiting;
 
     public bool hostUIActive = false;
 
@@ -37,6 +39,11 @@ public class UIManager : MonoBehaviour
         OnDissconnectPressed?.Invoke();
     }
 
+    public void HostDissconectBtn()
+    {
+        OnHostDissconnectPressed?.Invoke();
+    }
+
     public void DisplayJoinCode(string code)
     {
         joinCodeDisplay.text = "Join code:" + code;
@@ -45,5 +52,11 @@ public class UIManager : MonoBehaviour
     public void UpdateConnectedPlayerCount(int num)
     {
         playersConnectedCount.text = "Players connected: " + (num - 1);
+    }
+
+    public void UpdateJoinedWaitingTextClientRpc(string msg)
+    {
+        Debug.Log(NetworkManager.Singleton.DisconnectReason);
+        joinedWaiting.text = msg;
     }
 }
