@@ -37,11 +37,13 @@ public class UIManager : MonoBehaviour
     public void DissconnectBtn()
     {
         OnDissconnectPressed?.Invoke();
-    }
 
-    public void HostDissconectBtn()
-    {
-        OnHostDissconnectPressed?.Invoke();
+        //reset that may have been changed
+        joinCodeDisplay.text = "Generating code...";
+        playersConnectedCount.text = "Connected players: 0";
+        joinedWaiting.text = "Waiting for host to start game...";
+
+        joinedWaiting.color = Color.white;
     }
 
     public void DisplayJoinCode(string code)
@@ -56,7 +58,7 @@ public class UIManager : MonoBehaviour
 
     public void UpdateJoinedWaitingTextClientRpc(string msg)
     {
-        Debug.Log(NetworkManager.Singleton.DisconnectReason);
         joinedWaiting.text = msg;
+        joinedWaiting.color = Color.red;
     }
 }

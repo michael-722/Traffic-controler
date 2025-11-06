@@ -25,13 +25,9 @@ public class GameInitaliser : MonoBehaviour
         ui.OnStartHostPressed += relay.CreateHost;
         ui.OnStartClientPressed += relay.JoinGame;
         ui.OnDissconnectPressed += relay.Dissconect;
-        ui.OnHostDissconnectPressed += relay.HostDissconect;
 
         relay.joinCodeCreated += ui.DisplayJoinCode;
         relay.connectedPlayerCountChange += ui.UpdateConnectedPlayerCount;
-        relay.hostDissconnected += ui.UpdateJoinedWaitingTextClientRpc;
-
-        NetworkManager.Singleton.OnClientConnectedCallback += relay.Connection;
-        NetworkManager.Singleton.OnClientDisconnectCallback += relay.Dissconnection;
+        relay.dissconnectMsg += ui.UpdateJoinedWaitingTextClientRpc;
     }
 }

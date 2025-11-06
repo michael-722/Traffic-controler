@@ -1,13 +1,13 @@
-using UnityEngine;
-using Unity.Services.Core;
-using Unity.Services.Authentication;
-using Unity.Services.Relay;
-using Unity.Services.Relay.Models;
-using Unity.Netcode;
-using Unity.Netcode.Transports.UTP;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Unity.Netcode;
+using Unity.Netcode.Transports.UTP;
+using Unity.Services.Authentication;
+using Unity.Services.Core;
+using Unity.Services.Relay;
+using Unity.Services.Relay.Models;
+using UnityEngine;
 
 //to cal ping save time msg sent and then time recieve response then t1 - t0 gives ping 
 
@@ -15,7 +15,7 @@ public class Relay : MonoBehaviour
 {
     public event Action<string> joinCodeCreated;
     public event Action<int> connectedPlayerCountChange;
-    public event Action<string> hostDissconnected;
+    public event Action<string> dissconnectMsg;
 
     private List<ulong> connectedPlayerIds = new List<ulong>();
 
@@ -37,6 +37,14 @@ public class Relay : MonoBehaviour
         {
             Debug.LogError($"failed to initialize unity services: {e.Message}");
         }
+    }
+
+    private void Start()
+    {
+        NetworkManager.Singleton.OnClientConnectedCallback += Connection;
+        NetworkManager.Singleton.OnClientDisconnectCallback += Dissconnection;
+
+        NetworkManager.Singleton.OnTransportFailure += ConnectionLost;
     }
 
     public async void CreateHost()
@@ -88,23 +96,15 @@ public class Relay : MonoBehaviour
         }
         catch (System.Exception e)
         {
+            if (e.Message.Contains("invalid request")) dissconnectMsg.Invoke("Invalid join code Please enter vaild code");
+
             Debug.LogError($"failed to join relay: {e.Message}");
         }
     }
 
     public void Dissconect()
     {
-        NetworkManager.Singleton.Shutdown();
-    }
-
-    public async void HostDissconect()
-    {
-        for (int i = 1; i < connectedPlayerIds.Count; i--)
-        {
-            NetworkManager.Singleton.DisconnectClient(connectedPlayerIds[i]);
-        }
-        await Task.Delay(1000);
-        NetworkManager.Singleton.Shutdown();
+        Dissconnection(NetworkManager.Singleton.LocalClientId);
     }
 
     public void Connection(ulong id)
@@ -120,13 +120,43 @@ public class Relay : MonoBehaviour
 
     public void Dissconnection(ulong id)
     {
-        
+        //server dc
+        if (id == serverID)
+        {
+            //Debug.Log("Host disconnected");
+
+            ConnectionLost();
+            DisconnectAllPlayersServerRpc();
+
+            connectedPlayerIds.Remove(id);
+
+            NetworkManager.Singleton.Shutdown();
+            return;
+        }
+
+        //client dc
         if (connectedPlayerIds.Contains(id))
         {
             //Debug.Log("dissconeted player id: " + id);
             connectedPlayerIds.Remove(id);
             connectedPlayerCountChange?.Invoke(connectedPlayerIds.Count);
+            ConnectionLost();
         }
         else Debug.LogWarning($"player {id} has already disconnected");
+    }
+
+    private void ConnectionLost()
+    {
+        dissconnectMsg.Invoke("Host has disconnected Please leave game");
+    }
+
+    [ServerRpc]
+    public void DisconnectAllPlayersServerRpc()
+    {
+        for (int i = connectedPlayerIds.Count - 1; i >= 0; i--)
+        {
+            ulong playerId = connectedPlayerIds[i];
+            NetworkManager.Singleton.DisconnectClient(playerId);
+        }
     }
 }
