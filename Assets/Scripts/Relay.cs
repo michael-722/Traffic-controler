@@ -153,7 +153,7 @@ public class Relay : MonoBehaviour
     [ServerRpc]
     public void DisconnectAllPlayersServerRpc()
     {
-        for (int i = connectedPlayerIds.Count - 1; i >= 0; i--)
+        for (int i = connectedPlayerIds.Count - 1; i >= 1; i--)
         {
             ulong playerId = connectedPlayerIds[i];
             NetworkManager.Singleton.DisconnectClient(playerId);
