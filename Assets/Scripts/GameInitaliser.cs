@@ -6,6 +6,7 @@ public class GameInitaliser : MonoBehaviour
 {
     private Relay relay = null;
     private UIManager ui = null;
+    private CameraManager cameraManager = null;
 
     private void Start()
     {
@@ -14,18 +15,14 @@ public class GameInitaliser : MonoBehaviour
 
     private void OnEnable()
     {
-        StartCoroutine(SetUpListener());
+        SetUpListener();
     }
 
-    private IEnumerator SetUpListener()
+    private void SetUpListener()
     {
-        while (relay == null || ui == null)
-        {
-            relay = FindFirstObjectByType<Relay>();
-            ui = FindFirstObjectByType<UIManager>();
-
-            yield return null;
-        }
+        relay = FindFirstObjectByType<Relay>();
+        ui = FindFirstObjectByType<UIManager>();
+        cameraManager = FindFirstObjectByType<CameraManager>();
 
         ui.OnStartHostPressed += relay.CreateHost;
         ui.OnStartClientPressed += relay.JoinGame;

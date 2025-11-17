@@ -34,7 +34,10 @@ public class CameraManager : MonoBehaviour
     {
         HandleMovement();
         HandleZoom();
-        ClampCameraToArea();
+        if (IsOutsideArea(transform.position))
+        {
+            //trigger player zone pulsing
+        }
     }
 
     void HandleMovement()
@@ -67,19 +70,14 @@ public class CameraManager : MonoBehaviour
         }
     }
 
-    void ClampCameraToArea()
+    bool IsOutsideArea(Vector3 pos)
     {
-        Vector3 pos = transform.position;
-
-        pos.x = Mathf.Clamp(pos.x, minX, maxX);
-        pos.z = Mathf.Clamp(pos.z, minZ, maxZ);
-
-        transform.position = pos;
+        return pos.x < minX || pos.x > maxX || pos.z < minZ || pos.z > maxZ;
     }
 
-    public void SetAreaCenter(Vector2 pos)
+    public void SetAreaCenter(Vector3 pos)
     {
-        areaCenter = pos;
+        areaCenter = new Vector2(pos.x, pos.z);
 
         minX = areaCenter.x - areaSize.x / 2f;
         maxX = areaCenter.x + areaSize.x / 2f;

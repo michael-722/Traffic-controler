@@ -6,7 +6,7 @@ public class PlayerSpawner : NetworkBehaviour
 {
     [SerializeField] private List<Vector3> spawnPoints;
 
-    private static int nextSpawnIndex = 0;
+    private int nextSpawnIndex = 0;
 
     public override void OnNetworkSpawn()
     {
@@ -14,8 +14,7 @@ public class PlayerSpawner : NetworkBehaviour
 
         if (nextSpawnIndex >= spawnPoints.Count)
         {
-            Debug.LogWarning("no more spawn points");
-            return;
+            nextSpawnIndex = 0;
         }
 
         Vector3 spawnPos = spawnPoints[nextSpawnIndex];
@@ -25,7 +24,7 @@ public class PlayerSpawner : NetworkBehaviour
         SetPositionClientRpc(spawnPos);
     }
 
-    [ClientRpc]
+    [Rpc(SendTo.Owner)]
     private void SetPositionClientRpc(Vector3 pos)
     {
         if (IsOwner)

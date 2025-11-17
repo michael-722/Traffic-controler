@@ -20,11 +20,15 @@ public class CarController : NetworkBehaviour
 
     [SerializeField] private Transform roadTransform;
 
+    private JunctionDirection newDir;
+
     private NetworkVariable<JunctionDirection> chosenDirection = new NetworkVariable<JunctionDirection>(
     JunctionDirection.Up,
     NetworkVariableReadPermission.Everyone,
     NetworkVariableWritePermission.Server);
 
+    [SerializeField] private BlinkerController leftBlinkers;
+    [SerializeField] private BlinkerController rightBlinkers;
 
     private void Start()
     {
@@ -78,7 +82,7 @@ public class CarController : NetworkBehaviour
             }
 
             entryDirection = GetDirectionFromTrigger(trigger.name);
-            
+
             //Debug.Log($"{name} entered junction from {entryDirection} via trigger {trigger.name}");
 
             //find traffic light
@@ -119,6 +123,8 @@ public class CarController : NetworkBehaviour
     {
         waitingAtLight = true;
 
+        yield return DetermineNextDirection();
+
         //yield return new WaitForSeconds(0.1f);
 
         //keep checking traffic light state
@@ -143,14 +149,16 @@ public class CarController : NetworkBehaviour
         }
 
         yield return MoveThroughJunction();
+
+        //blinkers off after turn complete
+        leftBlinkers.setBlinkers(false);
+        rightBlinkers.setBlinkers(false);
     }
 
-    private IEnumerator MoveThroughJunction()
+    private IEnumerator DetermineNextDirection()
     {
         List<JunctionDirection> validDirs = new List<JunctionDirection>(currentJunction.junctionMap.Keys);
         validDirs.Remove(entryDirection);
-
-        JunctionDirection newDir;
 
         if (IsServer)
         {
@@ -162,7 +170,33 @@ public class CarController : NetworkBehaviour
             yield return new WaitUntil(() => chosenDirection.Value != entryDirection);
             newDir = chosenDirection.Value;
         }
+        //-90 left | 0 straight | 90 right 
+        int turnAngle = (int)GetTurnAngle(entryDirection, newDir);
+        switch (turnAngle)
+        {
+            case 90:
+                //right indicator
+                rightBlinkers.setBlinkers(true);
+                break;
+            case -90:
+                //left indicator
+                leftBlinkers.setBlinkers(true);
+                break;
+            case 0:
+                //no indicator
+                leftBlinkers.setBlinkers(false);
+                rightBlinkers.setBlinkers(false);
+                break;
+            default:
+                //no indicator
+                leftBlinkers.setBlinkers(false);
+                rightBlinkers.setBlinkers(false);
+                break;
+        }
+    }
 
+    private IEnumerator MoveThroughJunction()
+    {
         float turnDist = GetTurnDistance(entryDirection, newDir);
         yield return StartCoroutine(MoveForward(turnDist, driveSpeed));
 
