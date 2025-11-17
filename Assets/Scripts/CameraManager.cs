@@ -2,10 +2,17 @@ using UnityEngine;
 
 public class CameraManager : MonoBehaviour
 {
+    public static CameraManager Instance;
+
     [SerializeField] private float dragSpeed = 20f;
     [SerializeField] private float zoomSpeed = 10f;
     [SerializeField] private float minZoom = 5f;
     [SerializeField] private float maxZoom = 50f;
+
+    [SerializeField] private Vector2 areaCenter = Vector2.zero;
+    [SerializeField] private Vector2 areaSize = new Vector2(200, 200);
+
+    private float minX, maxX, minZ, maxZ;
 
     private Vector3 dragOrigin;
 
@@ -13,10 +20,21 @@ public class CameraManager : MonoBehaviour
     //old input sys - update to new input sys needed
     //==========================
 
+    private void Start()
+    {
+        Instance = this;
+
+        minX = areaCenter.x - areaSize.x / 2f;
+        maxX = areaCenter.x + areaSize.x / 2f;
+        minZ = areaCenter.y - areaSize.y / 2f;
+        maxZ = areaCenter.y + areaSize.y / 2f;
+    }
+
     void Update()
     {
         HandleMovement();
         HandleZoom();
+        ClampCameraToArea();
     }
 
     void HandleMovement()
@@ -47,5 +65,25 @@ public class CameraManager : MonoBehaviour
             position.y = Mathf.Clamp(position.y, minZoom, maxZoom);
             transform.position = position;
         }
+    }
+
+    void ClampCameraToArea()
+    {
+        Vector3 pos = transform.position;
+
+        pos.x = Mathf.Clamp(pos.x, minX, maxX);
+        pos.z = Mathf.Clamp(pos.z, minZ, maxZ);
+
+        transform.position = pos;
+    }
+
+    public void SetAreaCenter(Vector2 pos)
+    {
+        areaCenter = pos;
+
+        minX = areaCenter.x - areaSize.x / 2f;
+        maxX = areaCenter.x + areaSize.x / 2f;
+        minZ = areaCenter.y - areaSize.y / 2f;
+        maxZ = areaCenter.y + areaSize.y / 2f;
     }
 }

@@ -1,8 +1,9 @@
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Netcode;
 
-public class CarController : MonoBehaviour
+public class CarController : NetworkBehaviour
 {
     [SerializeField] private float driveSpeed = 7.5f;
     [SerializeField] private float turnSpeed = 2.0f;
@@ -18,6 +19,12 @@ public class CarController : MonoBehaviour
     private JunctionDirection entryDirection;
 
     [SerializeField] private Transform roadTransform;
+
+    private NetworkVariable<JunctionDirection> chosenDirection = new NetworkVariable<JunctionDirection>(
+    JunctionDirection.Up,
+    NetworkVariableReadPermission.Everyone,
+    NetworkVariableWritePermission.Server);
+
 
     private void Start()
     {
@@ -140,31 +147,27 @@ public class CarController : MonoBehaviour
 
     private IEnumerator MoveThroughJunction()
     {
-        //get valid dirs
         List<JunctionDirection> validDirs = new List<JunctionDirection>(currentJunction.junctionMap.Keys);
+        validDirs.Remove(entryDirection);
 
-        foreach (JunctionDirection dir in System.Enum.GetValues(typeof(JunctionDirection)))
+        JunctionDirection newDir;
+
+        if (IsServer)
         {
-            if (dir == entryDirection)
-            {
-                validDirs.Remove(dir);
-            }
+            newDir = validDirs[Random.Range(0, validDirs.Count)];
+            chosenDirection.Value = newDir;
+        }
+        else
+        {
+            yield return new WaitUntil(() => chosenDirection.Value != entryDirection);
+            newDir = chosenDirection.Value;
         }
 
-        JunctionDirection newDir = validDirs[Random.Range(0, validDirs.Count)];
-
-        float turnDist = GetTurnDistance(entryDirection, newDir);//offset dist for turn
-
-        //Debug.Log("entry dir " + entryDirection + " new dir " + newDir);
-        //Debug.Log("turn dist for " + newDir + " is " + turnDist);
-
+        float turnDist = GetTurnDistance(entryDirection, newDir);
         yield return StartCoroutine(MoveForward(turnDist, driveSpeed));
 
-        //rotate toward target dir
         float turnAngle = GetTurnAngle(entryDirection, newDir);
         Quaternion targetRot = Quaternion.Euler(0f, transform.eulerAngles.y + turnAngle, 0f);
-        
-        //Debug.Log("target rot for " + newDir + " is " + targetRot.eulerAngles);
 
         entryDirection = newDir;
 
@@ -174,7 +177,6 @@ public class CarController : MonoBehaviour
             yield return null;
         }
 
-        //correct rotation closest 90
         Vector3 euler = transform.eulerAngles;
         euler.y = Mathf.Round(euler.y / 90f) * 90f;
         transform.eulerAngles = euler;

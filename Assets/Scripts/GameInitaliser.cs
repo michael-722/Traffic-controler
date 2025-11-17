@@ -7,6 +7,11 @@ public class GameInitaliser : MonoBehaviour
     private Relay relay = null;
     private UIManager ui = null;
 
+    private void Start()
+    {
+        Application.targetFrameRate = 60;
+    }
+
     private void OnEnable()
     {
         StartCoroutine(SetUpListener());
@@ -25,9 +30,12 @@ public class GameInitaliser : MonoBehaviour
         ui.OnStartHostPressed += relay.CreateHost;
         ui.OnStartClientPressed += relay.JoinGame;
         ui.OnDissconnectPressed += relay.Dissconect;
+        ui.OnStartLANPressed += relay.CreateLAN;
+        ui.OnJoinLANPressed += relay.JoinLAN;
 
         relay.joinCodeCreated += ui.DisplayJoinCode;
         relay.connectedPlayerCountChange += ui.UpdateConnectedPlayerCount;
         relay.dissconnectMsg += ui.UpdateJoinedWaitingTextClientRpc;
+        relay.ipAddressFetched += ui.DisplayIpAdress;
     }
 }

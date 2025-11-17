@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
+using System.Net;
+using System.Net.Sockets;
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
 using Unity.Services.Authentication;
@@ -14,8 +15,11 @@ using UnityEngine;
 public class Relay : MonoBehaviour
 {
     public event Action<string> joinCodeCreated;
+    public event Action<string> ipAddressFetched;
     public event Action<int> connectedPlayerCountChange;
     public event Action<string> dissconnectMsg;
+
+    private UnityTransport transport;
 
     private List<ulong> connectedPlayerIds = new List<ulong>();
 
@@ -45,6 +49,8 @@ public class Relay : MonoBehaviour
         NetworkManager.Singleton.OnClientDisconnectCallback += Dissconnection;
 
         NetworkManager.Singleton.OnTransportFailure += ConnectionLost;
+
+        transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
     }
 
     public async void CreateHost()
@@ -59,7 +65,7 @@ public class Relay : MonoBehaviour
             joinCodeCreated?.Invoke(joinCode);
 
             //set relay data for netcode transport
-            NetworkManager.Singleton.GetComponent<UnityTransport>().SetHostRelayData(
+            transport.SetHostRelayData(
                 allocation.RelayServer.IpV4,
                 (ushort)allocation.RelayServer.Port,
                 allocation.AllocationIdBytes,
@@ -84,7 +90,7 @@ public class Relay : MonoBehaviour
             Debug.Log($"joined relay with allocation id: {allocation.AllocationId}");
 
             //set relay data for netcode transport
-            NetworkManager.Singleton.GetComponent<UnityTransport>().SetClientRelayData(
+            transport.SetClientRelayData(
                 allocation.RelayServer.IpV4,
                 (ushort)allocation.RelayServer.Port,
                 allocation.AllocationIdBytes,
@@ -100,6 +106,19 @@ public class Relay : MonoBehaviour
 
             Debug.LogError($"failed to join relay: {e.Message}");
         }
+    }
+
+    public string GetLocalIPAddress()
+    {
+        var host = Dns.GetHostEntry(Dns.GetHostName());
+        foreach (var ip in host.AddressList)
+        {
+            if (ip.AddressFamily == AddressFamily.InterNetwork)
+            {
+                return ip.ToString();
+            }
+        }
+        throw new System.Exception("failed to get ip");
     }
 
     public void Dissconect()
@@ -158,5 +177,34 @@ public class Relay : MonoBehaviour
             ulong playerId = connectedPlayerIds[i];
             NetworkManager.Singleton.DisconnectClient(playerId);
         }
+    }
+
+    public void CreateLAN()
+    {
+        string ip = GetLocalIPAddress();
+        transport.SetConnectionData(ip, 7777, "0.0.0.0");
+
+        ipAddressFetched?.Invoke(ip);
+
+        NetworkManager.Singleton.StartHost();
+    }
+
+    public void JoinLAN(string ip)
+    {
+        if (!IsValidIP(ip))
+        {
+            dissconnectMsg.Invoke("Invalid IP address please enter vaild address");
+            return;
+        }
+
+        transport.SetConnectionData(ip, 7777, null);
+
+        NetworkManager.Singleton.StartClient();
+    }
+
+    private bool IsValidIP(string ip)
+    {
+        System.Net.IPAddress ipAddr;
+        return System.Net.IPAddress.TryParse(ip, out ipAddr);
     }
 }

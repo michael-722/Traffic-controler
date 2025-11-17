@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections;
 using UnityEngine.UI;
+using Unity.Netcode;
 
 public enum TrafficLightState
 {
@@ -9,12 +10,16 @@ public enum TrafficLightState
     Green
 }
 
-public class TrafficLightController : MonoBehaviour
+public class TrafficLightController : NetworkBehaviour
 {
     [SerializeField] private float lightChangeDelay = 0.75f;
     [SerializeField] private float intensity = 30.0f;
 
-    private TrafficLightState currentState = TrafficLightState.Red;
+    private NetworkVariable<TrafficLightState> currentState = new NetworkVariable<TrafficLightState>(
+        TrafficLightState.Red,
+        readPerm: NetworkVariableReadPermission.Everyone,
+        writePerm: NetworkVariableWritePermission.Server);
+
     private bool isChanging = false;
 
     [SerializeField] private Material greenLightMat;
@@ -41,30 +46,39 @@ public class TrafficLightController : MonoBehaviour
         yellowEmission = yellowLightMat.GetColor("_EmissionColor");
         greenEmission = greenLightMat.GetColor("_EmissionColor");
 
-        UpdateTrafficLight();
+        UpdateTrafficLightVisual();
+
+        currentState.OnValueChanged += OnTrafficLightStateChanged;
 
         changeLightBtn.onClick.AddListener(OnTrafficLightClicked);
     }
 
     public void OnTrafficLightClicked()
     {
-        if (!isChanging)
-        {
-            StartCoroutine(ChangeColor());
-        }
+        if (!IsOwner || isChanging) return;//only owner can change
+
+        RequestChangeServerRpc();
+    }
+
+    //client calls to change light
+    [ServerRpc(RequireOwnership = false)]
+    private void RequestChangeServerRpc(ServerRpcParams rpcParams = default)
+    {
+
+        if (!isChanging) StartCoroutine(ChangeColor());
     }
 
     private IEnumerator ChangeColor()
     {
         isChanging = true;
-        
-        //switch light states
-        if (currentState == TrafficLightState.Red)
+
+        // switch light states
+        if (currentState.Value == TrafficLightState.Red)
         {
             yield return ChangeState(TrafficLightState.Yellow);
             yield return ChangeState(TrafficLightState.Green);
         }
-        else if (currentState == TrafficLightState.Green)
+        else if (currentState.Value == TrafficLightState.Green)
         {
             yield return ChangeState(TrafficLightState.Yellow);
             yield return ChangeState(TrafficLightState.Red);
@@ -75,17 +89,22 @@ public class TrafficLightController : MonoBehaviour
 
     private IEnumerator ChangeState(TrafficLightState nextState)
     {
-        currentState = nextState;
-        yield return new WaitForSeconds(lightChangeDelay);
+        if (IsServer) currentState.Value = nextState;
 
-        UpdateTrafficLight();
+        yield return new WaitForSeconds(lightChangeDelay);
     }
 
-    private void UpdateTrafficLight()
+    //update clients
+    private void OnTrafficLightStateChanged(TrafficLightState oldState, TrafficLightState newState)
     {
-        //Debug.Log("Traffic light state: " + currentState);
+        UpdateTrafficLightVisual();
+    }
 
-        switch (currentState)
+    private void UpdateTrafficLightVisual()
+    {
+        //Debug.Log("Traffic light state: " + currentState.Value);
+
+        switch (currentState.Value)
         {
             case TrafficLightState.Red:
                 //Debug.Log("red");
@@ -133,6 +152,6 @@ public class TrafficLightController : MonoBehaviour
 
     public TrafficLightState GetCurrentState()
     {
-        return currentState;
+        return currentState.Value;
     }
 }
