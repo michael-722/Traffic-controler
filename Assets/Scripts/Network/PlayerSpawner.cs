@@ -9,14 +9,10 @@ public class PlayerSpawner : NetworkBehaviour
 
     private int nextSpawnIndex = 0;
 
-    private void Start()
-    {
-        NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnected;
-    }
-
     public override void OnNetworkSpawn()
     {
         if (!IsServer) enabled = false;
+        NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnected;
     }
 
     private void OnClientConnected(ulong clientId)
@@ -26,6 +22,7 @@ public class PlayerSpawner : NetworkBehaviour
 
     private void SpawnPlayer(ulong clientId)
     {
+        if (!IsServer) return;
 
         if (spawnPoints.Count == 0)
         {
@@ -33,13 +30,15 @@ public class PlayerSpawner : NetworkBehaviour
             return;
         }
 
+        if (spawnPoints[nextSpawnIndex] == null) return;
+
         Transform spawnPoint = spawnPoints[nextSpawnIndex];
         nextSpawnIndex = (nextSpawnIndex + 1) % spawnPoints.Count;
 
         GameObject playerInstance = Instantiate(playerPrefab, spawnPoint.position, spawnPoint.rotation);
         playerInstance.GetComponent<NetworkObject>().SpawnAsPlayerObject(clientId, true);
 
-        SetCameraClientRpc(spawnPoint.position, clientId);
+        SetCameraClientRpc(new Vector3(playerInstance.transform.position.x, 35f, playerInstance.transform.position.z), clientId);
     }
 
 

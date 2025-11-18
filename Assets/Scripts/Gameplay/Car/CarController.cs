@@ -20,8 +20,6 @@ public class CarController : NetworkBehaviour
 
     [SerializeField] private Transform roadTransform;
 
-    private JunctionDirection newDir;
-
     private NetworkVariable<JunctionDirection> chosenDirection = new NetworkVariable<JunctionDirection>(
     JunctionDirection.Up,
     NetworkVariableReadPermission.Everyone,
@@ -30,9 +28,10 @@ public class CarController : NetworkBehaviour
     [SerializeField] private BlinkerController leftBlinkers;
     [SerializeField] private BlinkerController rightBlinkers;
 
-    private GameObject rearTriggerInstance;
+    private GameObject rearTriggerInstance = null;
     private bool rearTriggerActive = false;
-    private bool checkTriggerAgain = false;
+
+    private bool directionChosen = false;
 
     private void Awake()
     {
@@ -44,6 +43,9 @@ public class CarController : NetworkBehaviour
         //road in x dir
         //roadWidth = GetRoadWidth(roadTransform);
         //Debug.Log($"{name} car width: {carWidth} road width: {roadWidth}");
+
+        leftBlinkers.setBlinkers(false);
+        rightBlinkers.setBlinkers(false);
     }
 
     private float GetCarWidth()
@@ -75,6 +77,8 @@ public class CarController : NetworkBehaviour
 
     private void OnTriggerEnter(Collider trigger)
     {
+        if (!IsServer) return;
+
         //check if is junction trigger
         if (!trigger.transform.name.Contains("Trigger")) return;
 
@@ -85,13 +89,18 @@ public class CarController : NetworkBehaviour
             return;
         }
 
-        if (trigger.transform.name.Contains("Clone")) checkTriggerAgain = true;
-        else checkTriggerAgain = false;
+        if (trigger.transform.name.Contains("Clone")) return;
+
+        /*
+        if (rearTriggerInstance != null && trigger.transform == rearTriggerInstance.transform)
+        {
+            return;
+        }*/
+
+        directionChosen = false;
 
         rearTriggerInstance = trigger.gameObject;
         entryDirection = GetDirectionFromTrigger(trigger.name);
-
-        //Debug.Log($"{name} entered junction from {entryDirection} via trigger {trigger.name}");
 
         //find traffic light
         Transform lightsParent = trigger.transform.parent.parent;//get junction obj
@@ -139,9 +148,7 @@ public class CarController : NetworkBehaviour
     {
         waitingAtLight = true;
 
-        yield return DetermineNextDirection();
-
-        //yield return new WaitForSeconds(0.1f);
+        DetermineNextDirection();
 
         //keep checking traffic light state
         while (waitingAtLight)
@@ -168,8 +175,11 @@ public class CarController : NetworkBehaviour
             }
             else if (lightState == TrafficLightState.Green)
             {
-                Destroy(rearTriggerInstance);
-                rearTriggerActive = false;
+                if (rearTriggerActive && rearTriggerInstance != null)
+                {
+                    Destroy(rearTriggerInstance);
+                    rearTriggerActive = false;
+                }
 
                 waitingAtLight = false;
                 break;//go
@@ -178,27 +188,27 @@ public class CarController : NetworkBehaviour
             yield return null;
         }
 
-        if (checkTriggerAgain) yield return null;
-        else yield return MoveThroughJunction();
+        StartCoroutine(MoveThroughJunction());
     }
 
-    private IEnumerator DetermineNextDirection()
+
+    private void DetermineNextDirection()
     {
+        if (directionChosen) return;//already chosen dir
+        directionChosen = true;
+
         List<JunctionDirection> validDirs = new List<JunctionDirection>(currentJunction.junctionMap.Keys);
         validDirs.Remove(entryDirection);
 
         if (IsServer)
         {
-            newDir = validDirs[Random.Range(0, validDirs.Count)];
+            JunctionDirection newDir = validDirs[Random.Range(0, validDirs.Count)];
             chosenDirection.Value = newDir;
         }
-        else
-        {
-            yield return new WaitUntil(() => chosenDirection.Value != entryDirection);
-            newDir = chosenDirection.Value;
-        }
-        //-90 left | 0 straight | 90 right 
-        int turnAngle = (int)GetTurnAngle(entryDirection, newDir);
+
+        JunctionDirection selectedDir = chosenDirection.Value;
+
+        int turnAngle = (int)GetTurnAngle(entryDirection, selectedDir);
         switch (turnAngle)
         {
             case 90:
@@ -222,17 +232,22 @@ public class CarController : NetworkBehaviour
         }
     }
 
+
     private IEnumerator MoveThroughJunction()
     {
-        float turnDist = GetTurnDistance(entryDirection, newDir);
+        JunctionDirection targetDir = chosenDirection.Value;
+
+        //Debug.Log($"{name} entryDir={entryDirection} chosen={chosenDirection.Value} targetDir={targetDir}");
+        float turnDist = GetTurnDistance(entryDirection, targetDir);
         yield return StartCoroutine(MoveForward(turnDist, driveSpeed));
 
-        float turnAngle = GetTurnAngle(entryDirection, newDir);
+        float turnAngle = GetTurnAngle(entryDirection, targetDir);
         Quaternion targetRot = Quaternion.Euler(0f, transform.eulerAngles.y + turnAngle, 0f);
 
-        entryDirection = newDir;
+        entryDirection = targetDir;
+        directionChosen = false;
 
-        while (Quaternion.Angle(transform.rotation, targetRot) > 0.2f)
+        while (Quaternion.Angle(transform.rotation, targetRot) > 1f)
         {
             transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, turnSpeed * Time.deltaTime);
             yield return null;
@@ -329,7 +344,7 @@ public class CarController : NetworkBehaviour
                 {
                     case JunctionDirection.Left: return 90f;
                     case JunctionDirection.Right: return -90f;
-                    case JunctionDirection.Down: return 180f;
+                    case JunctionDirection.Down: return 0f;
                 }
                 break;
 

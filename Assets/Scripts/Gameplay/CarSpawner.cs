@@ -87,15 +87,4 @@ public class CarSpawner : NetworkBehaviour
         int playerCount = Mathf.Max(1, NetworkManager.Singleton.ConnectedClients.Count);
         return playerCount * carsPerPlayer;
     }
-
-    private void SyncCarsToClient(ulong clientId)
-    {
-        foreach (var car in spawnedCars)
-        {
-            if (car != null && car.IsSpawned)
-            {
-                car.NetworkShow(clientId);
-            }
-        }
-    }
 }

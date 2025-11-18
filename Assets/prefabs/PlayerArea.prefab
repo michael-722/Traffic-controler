@@ -92,7 +92,7 @@ Transform:
   m_GameObject: {fileID: 525466454086447712}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
-  m_LocalPosition: {x: 3, y: 1.4, z: 10}
+  m_LocalPosition: {x: 3.2, y: 1.4, z: 10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -123,7 +123,7 @@ Transform:
   m_GameObject: {fileID: 4039031111656001077}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
-  m_LocalPosition: {x: 3, y: 1.4, z: 10}
+  m_LocalPosition: {x: 3.2, y: 1.4, z: 10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -203,10 +203,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
   spawnPoints:
-  - {x: 0, y: 0, z: 0}
-  - {x: 0, y: 0, z: 180}
-  - {x: 180, y: 0, z: 0}
-  - {x: 180, y: 0, z: 180}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  playerPrefab: {fileID: 0}
 --- !u!1 &6310537159641897717
 GameObject:
   m_ObjectHideFlags: 0
@@ -272,7 +273,7 @@ Transform:
   m_GameObject: {fileID: 6703585995508668592}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
-  m_LocalPosition: {x: 3, y: 1.4, z: 10}
+  m_LocalPosition: {x: 3.2, y: 1.4, z: 10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

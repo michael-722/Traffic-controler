@@ -1,20 +1,32 @@
 using UnityEngine;
+using Unity.Netcode;
 
-public class BlinkerController : MonoBehaviour
+public class BlinkerController : NetworkBehaviour
 {
     [SerializeField] private float intensity = 7.0f;
     [SerializeField] private Color blinkerColor = new Color(1.0f, 0.529f, 0.0f);
     [SerializeField] private float flashInterval = 0.5f;
-
     private float timer = 0.0f;
-    private bool blinkersOn = false;
     private bool isLightOn = false;
 
-    public void setBlinkers(bool state)
-    {
-        blinkersOn = state;
+    private NetworkVariable<bool> blinkersOn = new NetworkVariable<bool>(false, 
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server);
 
-        if (!blinkersOn)
+    private void Awake()
+    {
+        blinkersOn.OnValueChanged += OnBlinkersChanged;
+    }
+
+    public override void OnDestroy()
+    {
+        blinkersOn.OnValueChanged -= OnBlinkersChanged;
+        base.OnDestroy();
+    }
+
+    private void OnBlinkersChanged(bool oldValue, bool newValue)
+    {
+        if (!newValue)
         {
             flashBlinkers(false);
             isLightOn = false;
@@ -22,12 +34,19 @@ public class BlinkerController : MonoBehaviour
         }
     }
 
+    public void setBlinkers(bool state)
+    {
+        if (IsServer)
+        {
+            blinkersOn.Value = state;
+        }
+    }
+
     private void Update()
     {
-        if (!blinkersOn) return;
+        if (!blinkersOn.Value) return;
 
         timer += Time.deltaTime;
-
         if (isLightOn)
         {
             if (timer >= flashInterval)
