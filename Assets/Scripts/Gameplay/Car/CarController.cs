@@ -30,6 +30,10 @@ public class CarController : NetworkBehaviour
     [SerializeField] private BlinkerController leftBlinkers;
     [SerializeField] private BlinkerController rightBlinkers;
 
+    private GameObject rearTriggerInstance;
+    private bool rearTriggerActive = false;
+    private bool checkTriggerAgain = false;
+
     private void Start()
     {
         rb = GetComponent<Rigidbody>();
@@ -72,7 +76,7 @@ public class CarController : NetworkBehaviour
     private void OnTriggerEnter(Collider trigger)
     {
         //check if is junction trigger
-        if (trigger.transform.name.EndsWith("Trigger"))
+        if (trigger.transform.name.Contains("Trigger"))
         {
             currentJunction = trigger.gameObject.GetComponentInParent<JunctionController>();
             if (currentJunction == null)
@@ -81,6 +85,10 @@ public class CarController : NetworkBehaviour
                 return;
             }
 
+            if (trigger.transform.name.Contains("Clone")) checkTriggerAgain = true;
+            else checkTriggerAgain = false;
+
+            rearTriggerInstance = trigger.gameObject;
             entryDirection = GetDirectionFromTrigger(trigger.name);
 
             //Debug.Log($"{name} entered junction from {entryDirection} via trigger {trigger.name}");
@@ -136,11 +144,25 @@ public class CarController : NetworkBehaviour
             //wait
             if (lightState == TrafficLightState.Red || lightState == TrafficLightState.Yellow)
             {
+                if (!rearTriggerActive)
+                {
+                    rearTriggerActive = true;
+                    Transform originalParent = rearTriggerInstance.transform.parent;
+                    Transform originalPos = rearTriggerInstance.transform;
+                    
+                    rearTriggerInstance = Instantiate(rearTriggerInstance);
+                    
+                    rearTriggerInstance.transform.parent = originalParent;
+                    rearTriggerInstance.transform.position = originalPos.transform.position - transform.forward * 8f;
+                }
                 yield return null;
                 continue;
             }
             else if (lightState == TrafficLightState.Green)
             {
+                Destroy(rearTriggerInstance);
+                rearTriggerActive = false;
+
                 waitingAtLight = false;
                 break;//go
             }
@@ -148,11 +170,8 @@ public class CarController : NetworkBehaviour
             yield return null;
         }
 
-        yield return MoveThroughJunction();
-
-        //blinkers off after turn complete
-        leftBlinkers.setBlinkers(false);
-        rightBlinkers.setBlinkers(false);
+        if (checkTriggerAgain) yield return null;
+        else yield return MoveThroughJunction();
     }
 
     private IEnumerator DetermineNextDirection()
@@ -218,6 +237,8 @@ public class CarController : NetworkBehaviour
 
     private IEnumerator MoveForward(float distance, float speed)
     {
+        bool turnOffBlinkers = false;
+
         Vector3 startPosition = rb.position;
         Vector3 targetPosition = startPosition + transform.forward * distance;
 
@@ -225,6 +246,14 @@ public class CarController : NetworkBehaviour
         {
             Vector3 newPosition = Vector3.MoveTowards(rb.position, targetPosition, speed * Time.deltaTime);
             rb.MovePosition(newPosition);
+
+            if (!turnOffBlinkers && Vector3.Distance(rb.position, startPosition) >= distance / 2)//blinkers off
+            {
+                turnOffBlinkers = true;
+                leftBlinkers.setBlinkers(false);
+                rightBlinkers.setBlinkers(false);
+            }
+
             yield return null;
         }
     }
