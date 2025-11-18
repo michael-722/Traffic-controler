@@ -1,10 +1,6 @@
 using System;
-using System.Net;
-using System.Net.Sockets;
 using TMPro;
-using Unity.Netcode;
 using UnityEngine;
-using Unity.Netcode.Transports.UTP;
 
 public class UIManager : MonoBehaviour
 {
@@ -14,7 +10,11 @@ public class UIManager : MonoBehaviour
     public event Action OnHostDissconnectPressed;
     public event Action OnStartLANPressed;
     public event Action<string> OnJoinLANPressed;
-    //public event Action //get players connected from relay================================================
+    public event Action OnStartGamePressed;
+
+    [SerializeField] private GameObject hostUI;
+    [SerializeField] private GameObject inGameUI;
+    [SerializeField] private GameObject postGameUI;
 
     [SerializeField] private TMP_InputField joinCodeInput;
     [SerializeField] private TMP_Text joinCodeDisplay;
@@ -42,7 +42,7 @@ public class UIManager : MonoBehaviour
 
     public void StartGameBtn()
     {
-    
+        OnStartGamePressed?.Invoke();
     }
 
     public void StartClientBtn()
@@ -84,5 +84,25 @@ public class UIManager : MonoBehaviour
     {
         joinedWaiting.text = msg;
         joinedWaiting.color = Color.red;
+    }
+
+    public void ToggleUIBasedOnGameState(GameState state)
+    {
+        hostUI.SetActive(false);
+        inGameUI.SetActive(false);
+        postGameUI.SetActive(false);
+
+        switch (state)
+        {
+            case GameState.Lobby:
+                hostUIActive = true;
+                break;
+            case GameState.Gameplay:
+                hostUIActive = false;
+                break;
+            case GameState.PostGame:
+                hostUIActive = true;
+                break;
+        }
     }
 }

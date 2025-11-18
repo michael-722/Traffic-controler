@@ -34,7 +34,7 @@ public class CarController : NetworkBehaviour
     private bool rearTriggerActive = false;
     private bool checkTriggerAgain = false;
 
-    private void Start()
+    private void Awake()
     {
         rb = GetComponent<Rigidbody>();
         carWidth = GetCarWidth();
@@ -76,55 +76,63 @@ public class CarController : NetworkBehaviour
     private void OnTriggerEnter(Collider trigger)
     {
         //check if is junction trigger
-        if (trigger.transform.name.Contains("Trigger"))
+        if (!trigger.transform.name.Contains("Trigger")) return;
+
+        currentJunction = trigger.gameObject.GetComponentInParent<JunctionController>();
+        if (currentJunction == null)
         {
-            currentJunction = trigger.gameObject.GetComponentInParent<JunctionController>();
-            if (currentJunction == null)
-            {
-                Debug.LogError("junction controller not found on obj");
-                return;
-            }
-
-            if (trigger.transform.name.Contains("Clone")) checkTriggerAgain = true;
-            else checkTriggerAgain = false;
-
-            rearTriggerInstance = trigger.gameObject;
-            entryDirection = GetDirectionFromTrigger(trigger.name);
-
-            //Debug.Log($"{name} entered junction from {entryDirection} via trigger {trigger.name}");
-
-            //find traffic light
-            Transform lightsParent = trigger.transform.parent.parent;//get junction obj
-            TrafficLightController[] lights = lightsParent.GetComponentsInChildren<TrafficLightController>();
-
-            currentLight = null;
-
-            foreach (TrafficLightController light in lights)
-            {
-                Vector3 lightForward = light.transform.forward;
-
-                //flipped bc lights are roted 180
-                Vector3 expectedLightDir = -GetWorldDirection(entryDirection);
-
-                float dot = Vector3.Dot(lightForward.normalized, expectedLightDir.normalized);
-
-                /* traffic lights are rotated 180 - if fixed must chage dot to -dot
-                 * 
-                 * dot product for 180 lights
-                 * dot 1 = same direction
-                 * dot -1 = opposite direction
-                 * dot 0 = perpendicular
-                 */
-                if (dot > 0.8f)
-                {
-                    currentLight = light;
-                    //Debug.Log($"{name} found traffic light {light.name} for trigger {trigger.name}");
-                    break;
-                }
-            }
-
-            StartCoroutine(HandleTrafficLight());
+            Debug.LogError("junction controller not found on obj");
+            return;
         }
+
+        if (trigger.transform.name.Contains("Clone")) checkTriggerAgain = true;
+        else checkTriggerAgain = false;
+
+        rearTriggerInstance = trigger.gameObject;
+        entryDirection = GetDirectionFromTrigger(trigger.name);
+
+        //Debug.Log($"{name} entered junction from {entryDirection} via trigger {trigger.name}");
+
+        //find traffic light
+        Transform lightsParent = trigger.transform.parent.parent;//get junction obj
+        TrafficLightController[] lights = lightsParent.GetComponentsInChildren<TrafficLightController>();
+
+        currentLight = null;
+
+        foreach (TrafficLightController light in lights)
+        {
+            Vector3 lightForward = light.transform.forward;
+
+            //flipped bc lights are roted 180
+            Vector3 expectedLightDir = -GetWorldDirection(entryDirection);
+
+            float dot = Vector3.Dot(lightForward.normalized, expectedLightDir.normalized);
+
+            /* traffic lights are rotated 180 - if fixed must chage dot to -dot
+             * 
+             * dot product for 180 lights
+             * dot 1 = same direction
+             * dot -1 = opposite direction
+             * dot 0 = perpendicular
+             */
+            if (dot > 0.8f)
+            {
+                currentLight = light;
+                break;
+            }
+        }
+
+        if (currentLight == null)
+        {
+            waitingAtLight = false;
+            //null bc triggers on roads where cars spawn need to do more work S
+            //dynamically remove triggers when no lights - handel in junction controller=============================================== 
+
+            //Debug.LogWarning($"{name} no traffic light found for junction at {trigger.transform.parent.parent.name} from dir {entryDirection}");
+            return;
+        }
+
+        StartCoroutine(HandleTrafficLight());
     }
 
     private IEnumerator HandleTrafficLight()
@@ -149,9 +157,9 @@ public class CarController : NetworkBehaviour
                     rearTriggerActive = true;
                     Transform originalParent = rearTriggerInstance.transform.parent;
                     Transform originalPos = rearTriggerInstance.transform;
-                    
+
                     rearTriggerInstance = Instantiate(rearTriggerInstance);
-                    
+
                     rearTriggerInstance.transform.parent = originalParent;
                     rearTriggerInstance.transform.position = originalPos.transform.position - transform.forward * 8f;
                 }
@@ -264,6 +272,7 @@ public class CarController : NetworkBehaviour
         float turnRadius = roadWidth / 2f;//turning rad
 
         //Debug.Log("lane offset: " + laneOffset + " turn radius: " + turnRadius);
+        //Debug.Log($"{name} turn from {entryDir} to {newDir}"); 
 
         if (newDir == entryDir) return 0f;//straight
 

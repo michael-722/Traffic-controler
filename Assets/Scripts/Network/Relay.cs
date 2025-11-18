@@ -75,7 +75,7 @@ public class Relay : MonoBehaviour
             NetworkManager.Singleton.StartHost();
             serverID = NetworkManager.ServerClientId;
         }
-        catch (System.Exception e)
+        catch (Exception e)
         {
             Debug.LogError($"failed to create relay: {e.Message}");
         }
@@ -100,7 +100,7 @@ public class Relay : MonoBehaviour
 
             NetworkManager.Singleton.StartClient();
         }
-        catch (System.Exception e)
+        catch (Exception e)
         {
             if (e.Message.Contains("invalid request")) dissconnectMsg.Invoke("Invalid join code Please enter vaild code");
 
@@ -118,7 +118,7 @@ public class Relay : MonoBehaviour
                 return ip.ToString();
             }
         }
-        throw new System.Exception("failed to get ip");
+        throw new Exception("failed to get ip");
     }
 
     public void Dissconect()
@@ -204,7 +204,7 @@ public class Relay : MonoBehaviour
 
     private bool IsValidIP(string ip)
     {
-        System.Net.IPAddress ipAddr;
-        return System.Net.IPAddress.TryParse(ip, out ipAddr);
+        IPAddress ipAddr;
+        return IPAddress.TryParse(ip, out ipAddr);
     }
 }
