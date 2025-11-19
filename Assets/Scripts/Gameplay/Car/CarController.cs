@@ -79,6 +79,7 @@ public class CarController : NetworkBehaviour
 
     private void OnTriggerEnter(Collider trigger)
     {
+
         if (!IsServer) return;
 
         //check if is junction trigger
@@ -91,13 +92,17 @@ public class CarController : NetworkBehaviour
             return;
         }
 
-        /*
-        if (rearTriggerInstance != null && trigger.transform == rearTriggerInstance.transform)
-        {
-            return;
-        }*/
-
         if (rearTriggerInstance != null && trigger.gameObject == rearTriggerInstance) return;
+
+        //need to add check if colliding with vaild trigger re adjust pos to correct pos bsed of trigger - since then itll always reset the cars pos so it doesnt drift 
+        //doesnt drift much rn but it does a bit so need to look into==================================================================================================
+        /*if (gameObject.transform.rotation.eulerAngles.y == 0 || gameObject.transform.rotation.eulerAngles.y == 180)//180 + 0 same case -90 + 90 same case for alligining
+        {
+            
+            //x
+        }*/
+        //z
+        
 
         rearTriggerInstance = trigger.gameObject;
         entryDirection = GetDirectionFromTrigger(trigger.name);
@@ -135,7 +140,7 @@ public class CarController : NetworkBehaviour
         {
             waitingAtLight = false;
             //null bc triggers on roads where cars spawn need to do more work S
-            //dynamically remove triggers when no lights - handel in junction controller=============================================== 
+            //dynamically remove triggers when no lights? -> handel in junction controller=============================================== 
 
             //Debug.LogWarning($"{name} no traffic light found for junction at {trigger.transform.parent.parent.name} from dir {entryDirection}");
             return;
@@ -146,6 +151,46 @@ public class CarController : NetworkBehaviour
         if (!directionChosen) DetermineNextDirection();
 
         StartCoroutine(HandleTrafficLight());
+    }
+
+    private void DetermineNextDirection()
+    {
+        if (directionChosen) return;//already chosen dir
+        directionChosen = true;
+
+        List<JunctionDirection> validDirs = new List<JunctionDirection>(currentJunction.junctionMap.Keys);
+        validDirs.Remove(entryDirection);
+
+        if (IsServer)
+        {
+            JunctionDirection newDir = validDirs[Random.Range(0, validDirs.Count)];
+            chosenDirection.Value = newDir;
+        }
+
+        JunctionDirection selectedDir = chosenDirection.Value;
+
+        int turnAngle = (int)GetTurnAngle(entryDirection, selectedDir);
+        switch (turnAngle)
+        {
+            case 90:
+                //right indicator
+                rightBlinkers.setBlinkers(true);
+                break;
+            case -90:
+                //left indicator
+                leftBlinkers.setBlinkers(true);
+                break;
+            case 0:
+                //no indicator
+                leftBlinkers.setBlinkers(false);
+                rightBlinkers.setBlinkers(false);
+                break;
+            default:
+                //no indicator
+                leftBlinkers.setBlinkers(false);
+                rightBlinkers.setBlinkers(false);
+                break;
+        }
     }
 
     private IEnumerator HandleTrafficLight()
@@ -205,47 +250,6 @@ public class CarController : NetworkBehaviour
         StartCoroutine(MoveThroughJunction());
     }
 
-
-    private void DetermineNextDirection()
-    {
-        if (directionChosen) return;//already chosen dir
-        directionChosen = true;
-
-        List<JunctionDirection> validDirs = new List<JunctionDirection>(currentJunction.junctionMap.Keys);
-        validDirs.Remove(entryDirection);
-
-        if (IsServer)
-        {
-            JunctionDirection newDir = validDirs[Random.Range(0, validDirs.Count)];
-            chosenDirection.Value = newDir;
-        }
-
-        JunctionDirection selectedDir = chosenDirection.Value;
-
-        int turnAngle = (int)GetTurnAngle(entryDirection, selectedDir);
-        switch (turnAngle)
-        {
-            case 90:
-                //right indicator
-                rightBlinkers.setBlinkers(true);
-                break;
-            case -90:
-                //left indicator
-                leftBlinkers.setBlinkers(true);
-                break;
-            case 0:
-                //no indicator
-                leftBlinkers.setBlinkers(false);
-                rightBlinkers.setBlinkers(false);
-                break;
-            default:
-                //no indicator
-                leftBlinkers.setBlinkers(false);
-                rightBlinkers.setBlinkers(false);
-                break;
-        }
-    }
-
     private IEnumerator MoveThroughJunction()
     {
         isMovingInQueue = true;
@@ -295,16 +299,6 @@ public class CarController : NetworkBehaviour
 
         rb.MovePosition(targetPosition);
         isMovingInQueue = false;
-    }
-
-    public void CleanupRearTrigger()
-    {
-        if (rearTriggerActive && rearTriggerInstance != null)
-        {
-            Destroy(rearTriggerInstance);
-            rearTriggerActive = false;
-            rearTriggerInstance = null;
-        }
     }
 
     private float GetTurnDistance(JunctionDirection entryDir, JunctionDirection newDir)

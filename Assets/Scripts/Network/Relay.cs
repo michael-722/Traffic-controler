@@ -48,7 +48,7 @@ public class Relay : MonoBehaviour
         NetworkManager.Singleton.OnClientConnectedCallback += Connection;
         NetworkManager.Singleton.OnClientDisconnectCallback += Dissconnection;
 
-        NetworkManager.Singleton.OnTransportFailure += ConnectionLost;
+        //NetworkManager.Singleton.OnTransportFailure += ConnectionLost;
 
         transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
     }

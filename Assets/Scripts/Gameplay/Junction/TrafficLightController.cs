@@ -62,7 +62,7 @@ public class TrafficLightController : NetworkBehaviour
 
     //client calls to change light
     [ServerRpc(RequireOwnership = false)]
-    private void RequestChangeServerRpc(ServerRpcParams rpcParams = default)
+    private void RequestChangeServerRpc()
     {
 
         if (!isChanging) StartCoroutine(ChangeColor());

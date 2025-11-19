@@ -16,9 +16,7 @@ public class CameraManager : MonoBehaviour
 
     private Vector3 dragOrigin;
 
-    //==========================
-    //old input sys - update to new input sys needed
-    //==========================
+    //old input sys - update to new input sys needed=============================
 
     private void Start()
     {
@@ -36,7 +34,8 @@ public class CameraManager : MonoBehaviour
         HandleZoom();
         if (IsOutsideArea(transform.position))
         {
-            //trigger player zone pulsing
+            //trigger player zone pulsing=================================
+            //need to set up mby with panel and circle img can create circle cut out with transparancy?
         }
     }
 
