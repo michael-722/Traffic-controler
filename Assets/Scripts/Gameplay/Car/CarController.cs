@@ -13,6 +13,8 @@ public class CarController : NetworkBehaviour
 
     private Rigidbody rb;
     private bool waitingAtLight = false;
+    private bool isMovingInQueue = false;
+    private bool isAdvancingToTrigger = false;
 
     private TrafficLightController currentLight;
     private JunctionController currentJunction;
@@ -32,6 +34,7 @@ public class CarController : NetworkBehaviour
     private bool rearTriggerActive = false;
 
     private bool directionChosen = false;
+    private bool isQueued = false;
 
     private void Awake()
     {
@@ -68,8 +71,7 @@ public class CarController : NetworkBehaviour
 
     private void FixedUpdate()
     {
-        //move car forward if not waiting
-        if (!waitingAtLight)
+        if (!waitingAtLight && !isMovingInQueue)
         {
             rb.MovePosition(transform.position + transform.forward * driveSpeed * Time.fixedDeltaTime);
         }
@@ -89,18 +91,17 @@ public class CarController : NetworkBehaviour
             return;
         }
 
-        if (trigger.transform.name.Contains("Clone")) return;
-
         /*
         if (rearTriggerInstance != null && trigger.transform == rearTriggerInstance.transform)
         {
             return;
         }*/
 
-        directionChosen = false;
+        if (rearTriggerInstance != null && trigger.gameObject == rearTriggerInstance) return;
 
         rearTriggerInstance = trigger.gameObject;
         entryDirection = GetDirectionFromTrigger(trigger.name);
+        isQueued = trigger.name.Contains("(Clone)");
 
         //find traffic light
         Transform lightsParent = trigger.transform.parent.parent;//get junction obj
@@ -118,12 +119,11 @@ public class CarController : NetworkBehaviour
             float dot = Vector3.Dot(lightForward.normalized, expectedLightDir.normalized);
 
             /* traffic lights are rotated 180 - if fixed must chage dot to -dot
-             * 
-             * dot product for 180 lights
+             * * dot product for 180 lights
              * dot 1 = same direction
              * dot -1 = opposite direction
              * dot 0 = perpendicular
-             */
+             * */
             if (dot > 0.8f)
             {
                 currentLight = light;
@@ -141,14 +141,16 @@ public class CarController : NetworkBehaviour
             return;
         }
 
+        if (isAdvancingToTrigger) return;
+
+        if (!directionChosen) DetermineNextDirection();
+
         StartCoroutine(HandleTrafficLight());
     }
 
     private IEnumerator HandleTrafficLight()
     {
         waitingAtLight = true;
-
-        DetermineNextDirection();
 
         //keep checking traffic light state
         while (waitingAtLight)
@@ -162,13 +164,13 @@ public class CarController : NetworkBehaviour
                 if (!rearTriggerActive)
                 {
                     rearTriggerActive = true;
+
+                    GameObject originalTrigger = rearTriggerInstance;
                     Transform originalParent = rearTriggerInstance.transform.parent;
-                    Transform originalPos = rearTriggerInstance.transform;
+                    Vector3 clonePosition = rearTriggerInstance.transform.position - transform.forward * 8f;
 
-                    rearTriggerInstance = Instantiate(rearTriggerInstance);
-
+                    rearTriggerInstance = Instantiate(originalTrigger, clonePosition, originalTrigger.transform.rotation);
                     rearTriggerInstance.transform.parent = originalParent;
-                    rearTriggerInstance.transform.position = originalPos.transform.position - transform.forward * 8f;
                 }
                 yield return null;
                 continue;
@@ -181,8 +183,20 @@ public class CarController : NetworkBehaviour
                     rearTriggerActive = false;
                 }
 
+                if (isQueued)
+                {
+                    //in que - move forward to main trigger
+
+                    isAdvancingToTrigger = true;//prevent trigger logic from firing
+                    yield return StartCoroutine(MoveForward(8f, driveSpeed));
+                    isAdvancingToTrigger = false;
+
+                    continue;
+                }
+
+                //start of que
                 waitingAtLight = false;
-                break;//go
+                break;
             }
 
             yield return null;
@@ -232,9 +246,10 @@ public class CarController : NetworkBehaviour
         }
     }
 
-
     private IEnumerator MoveThroughJunction()
     {
+        isMovingInQueue = true;
+
         JunctionDirection targetDir = chosenDirection.Value;
 
         //Debug.Log($"{name} entryDir={entryDirection} chosen={chosenDirection.Value} targetDir={targetDir}");
@@ -245,39 +260,50 @@ public class CarController : NetworkBehaviour
         Quaternion targetRot = Quaternion.Euler(0f, transform.eulerAngles.y + turnAngle, 0f);
 
         entryDirection = targetDir;
-        directionChosen = false;
 
         while (Quaternion.Angle(transform.rotation, targetRot) > 1f)
         {
             transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, turnSpeed * Time.deltaTime);
+            rb.MoveRotation(transform.rotation);
             yield return null;
         }
 
+        //sync fianl
         Vector3 euler = transform.eulerAngles;
         euler.y = Mathf.Round(euler.y / 90f) * 90f;
         transform.eulerAngles = euler;
+        rb.MoveRotation(Quaternion.Euler(euler));
+
+        directionChosen = false;
+        isMovingInQueue = false;
     }
 
     private IEnumerator MoveForward(float distance, float speed)
     {
-        bool turnOffBlinkers = false;
+        isMovingInQueue = true;
 
         Vector3 startPosition = rb.position;
         Vector3 targetPosition = startPosition + transform.forward * distance;
 
-        while (Vector3.Distance(rb.position, targetPosition) > 0.01f)
+        while (Vector3.Distance(rb.position, targetPosition) > 0.05f)
         {
             Vector3 newPosition = Vector3.MoveTowards(rb.position, targetPosition, speed * Time.deltaTime);
             rb.MovePosition(newPosition);
 
-            if (!turnOffBlinkers && Vector3.Distance(rb.position, startPosition) >= distance / 2)//blinkers off
-            {
-                turnOffBlinkers = true;
-                leftBlinkers.setBlinkers(false);
-                rightBlinkers.setBlinkers(false);
-            }
-
             yield return null;
+        }
+
+        rb.MovePosition(targetPosition);
+        isMovingInQueue = false;
+    }
+
+    public void CleanupRearTrigger()
+    {
+        if (rearTriggerActive && rearTriggerInstance != null)
+        {
+            Destroy(rearTriggerInstance);
+            rearTriggerActive = false;
+            rearTriggerInstance = null;
         }
     }
 
@@ -291,26 +317,12 @@ public class CarController : NetworkBehaviour
 
         if (newDir == entryDir) return 0f;//straight
 
-        switch (entryDir)
-        {
-            case JunctionDirection.Up:
-                if (newDir == JunctionDirection.Left) return roadWidth;//tight right turn
-                if (newDir == JunctionDirection.Right) return turnRadius;//wide left
-                break;
-            case JunctionDirection.Down://correct
-                if (newDir == JunctionDirection.Left) return turnRadius;//tight left turn
-                if (newDir == JunctionDirection.Right) return roadWidth;//wide right
-                break;
+        int turnAngle = (int)GetTurnAngle(entryDir, newDir);
 
-            case JunctionDirection.Left:
-                if (newDir == JunctionDirection.Up) return turnRadius;//tight left turn
-                if (newDir == JunctionDirection.Down) return roadWidth;//wide right
-                break;
-            case JunctionDirection.Right:
-                if (newDir == JunctionDirection.Down) return turnRadius;//tight left turn
-                if (newDir == JunctionDirection.Up) return roadWidth;//wide right
-                break;
-        }
+        //left turn
+        if (turnAngle == -90) return turnRadius;//narrow
+        //right turn
+        else if (turnAngle == 90)return roadWidth;//wide
 
         return 0f;
     }
