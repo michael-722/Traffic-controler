@@ -10,20 +10,18 @@ public class CarSpawner : NetworkBehaviour
     [SerializeField] private GameObject carPrefab;
     [SerializeField] private float spawnInterval = 3f;
     [SerializeField] private int carsPerPlayer = 10;
-
     [SerializeField] private string spawnTag = "CanSpawn";
-
+    
     private bool canSpawn = false;
+    private float spawnTimer;
 
     private List<NetworkObject> spawnedCars = new();
     private List<Transform> spawnPoints = new();
-
-    private float spawnTimer;
+    
 
     public override void OnNetworkSpawn()
     {
         if (IsServer) GameManager.Instance.OnGameStateChanged += HandleState;
-
         if (!IsServer) enabled = false;
     }
 
@@ -40,7 +38,6 @@ public class CarSpawner : NetworkBehaviour
     private void RescanSpawnPoints()
     {
         spawnPoints.Clear();
-
         GameObject[] taggedObjs = GameObject.FindGameObjectsWithTag(spawnTag);
         foreach (GameObject obj in taggedObjs) { spawnPoints.Add(obj.transform); }
     }
@@ -48,7 +45,6 @@ public class CarSpawner : NetworkBehaviour
     private void Update()
     {
         if (!canSpawn || !IsServer) return;
-
         spawnTimer += Time.deltaTime;
         if (spawnTimer >= spawnInterval && spawnedCars.Count < GetMaxCars())
         {
@@ -57,7 +53,6 @@ public class CarSpawner : NetworkBehaviour
         }
     }
 
-    
     public void TurnOnCarSpawning()
     {
         if (!IsServer) return;
@@ -73,12 +68,9 @@ public class CarSpawner : NetworkBehaviour
     private void SpawnCarServer()
     {
         Transform sp = spawnPoints[UnityEngine.Random.Range(0, spawnPoints.Count)];
-
         GameObject go = Instantiate(carPrefab, sp.position, sp.rotation);
         NetworkObject netObj = go.GetComponent<NetworkObject>();
-
         netObj.Spawn(true);
-
         spawnedCars.Add(netObj);
     }
 
