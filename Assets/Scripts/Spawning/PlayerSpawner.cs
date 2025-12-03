@@ -6,30 +6,49 @@ using System.Collections;
 
 public class PlayerSpawner : NetworkBehaviour
 {
+    public static PlayerSpawner instance;
+
     [SerializeField] private List<Transform> spawnPoints;
     [SerializeField] private GameObject playerPrefab;
 
+    private Vector3 centerPoint;
     private int nextSpawnIndex = 0;
-    private Vector3 centerOfSpawnPoints;
+    private Dictionary<ulong, int> playerQuadrantMap = new Dictionary<ulong, int>();
 
     private void Awake()
     {
-        Vector3 sum = Vector3.zero;
-        foreach (Transform point in spawnPoints)
+        if (spawnPoints.Count > 0)
         {
-            sum += point.position;
+            Vector3 sum = Vector3.zero;
+            foreach (var sp in spawnPoints)
+            {
+                sum += sp.position;
+            }
+            Vector3 avg = sum / spawnPoints.Count;
         }
-        centerOfSpawnPoints = sum / spawnPoints.Count;
+        else
+        {
+            Debug.LogWarning("no spawn points assigned to PlayerSpawner");
+        }
+    }
+
+    private void Start()
+    {
+        if (instance == null)
+            instance = this;
+        else
+            Destroy(gameObject);
     }
 
     public override void OnNetworkSpawn()
     {
-        if (!IsServer) enabled = false;
+        //if (!IsServer) enabled = false;
         NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnected;
     }
 
     private void OnClientConnected(ulong clientId)
     {
+        if (!IsServer) return;
         SpawnPlayer(clientId);
     }
 
@@ -40,8 +59,16 @@ public class PlayerSpawner : NetworkBehaviour
             yield return null;
         }
 
-        obj.GetComponent<PlayerSpawnController>().SetQuadrant(GetQuadrant(spawnPoint.position));
-        obj.GetComponent<PlayerSpawnController>().EnableMySpawnPoints();
+        int quadrant = GetQuadrantFromPosition(spawnPoint.position);
+        playerQuadrantMap[obj.GetComponent<NetworkObject>().OwnerClientId] = quadrant;
+
+        var playerSpawnController = obj.GetComponent<PlayerSpawnController>();
+        if (playerSpawnController != null)
+        {
+            playerSpawnController.SetPlayerQuadrant(quadrant);
+        }
+
+        playerSpawnController.EnableMySpawnPointsServerRpc();
     }
 
     private void SpawnPlayer(ulong clientId)
@@ -64,6 +91,16 @@ public class PlayerSpawner : NetworkBehaviour
         SetCameraClientRpc(new Vector3(playerInstance.transform.position.x, 35f, playerInstance.transform.position.z), clientId);
     }
 
+    private int GetQuadrantFromPosition(Vector3 position)
+    {
+        Vector3 relativePosition = position - centerPoint;
+
+        if (relativePosition.x >= 0 && relativePosition.z >= 0) return 1;//top right
+        if (relativePosition.x < 0 && relativePosition.z >= 0) return 2;//top left
+        if (relativePosition.x < 0 && relativePosition.z < 0) return 3;//bottom left
+        return 4;//bottom right
+    }
+
     [ClientRpc]
     private void SetCameraClientRpc(Vector3 spawnPosition, ulong clientId)
     {
@@ -72,27 +109,28 @@ public class PlayerSpawner : NetworkBehaviour
         CameraManager.Instance.SetAreaCenter(spawnPosition);
     }
 
-    ///returns quadrant 1-4 relative to center
-    private int GetQuadrant(Vector3 SpawnPos)
+    public int GetPlayerQuadrant(ulong clientId)
     {
-        Vector3 toSpawnPos = SpawnPos - centerOfSpawnPoints;
-        Vector3 right = new Vector3(1, 0, 0);
-        Vector3 forward = new Vector3(0, 0, 1);
+        if (playerQuadrantMap.ContainsKey(clientId))
+        {
+            return playerQuadrantMap[clientId];
+        }
+        return -1;
+    }
 
-        float dotRight = Vector3.Dot(toSpawnPos, right);
-        float dotForward = Vector3.Dot(toSpawnPos, forward);
-
-        ///1 +x +z
-        ///2 -x +z
-        ///3 -x -z
-        ///4 +x -z
-        if (dotRight >= 0 && dotForward >= 0)
-            return 1;
-        else if (dotRight < 0 && dotForward >= 0)
-            return 2;
-        else if (dotRight < 0 && dotForward < 0)
-            return 3;
-        else
-            return 4;
+    public GameObject GetPlayerInQuadrant(int quadrant)
+    {
+        foreach (var player in playerQuadrantMap)
+        {
+            if (player.Value == quadrant)
+            {
+                NetworkClient client = NetworkManager.Singleton.ConnectedClients[player.Key];
+                if (client != null && client.PlayerObject != null)
+                {
+                    return client.PlayerObject.gameObject;
+                }
+            }
+        }
+        return null;
     }
 }

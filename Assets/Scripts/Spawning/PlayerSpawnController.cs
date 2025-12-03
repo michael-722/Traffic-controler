@@ -1,130 +1,117 @@
-using System;
-using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
+using System.Collections.Generic;
+using System;
 
 public class PlayerSpawnController : NetworkBehaviour
 {
     private int myQuadrant = -1;
-    private CarSpawner carSpawner;
 
-    [SerializeField] private List<Transform> UpSpawnPos;
-    [SerializeField] private List<Transform> RightSpawnPos;
-    [SerializeField] private List<Transform> DownSpawnPos;
-    [SerializeField] private List<Transform> LeftSpawnPos;
+    [SerializeField] private List<Transform> UpSpawnPoints;
+    [SerializeField] private List<Transform> RightSpawnPoints;
+    [SerializeField] private List<Transform> DownSpawnPoints;
+    [SerializeField] private List<Transform> LeftSpawnPoints;
 
-    public List<List<Transform>> spawnPointGroups;
+    private List<Transform> allSpawnPoints;
 
-    private void Awake()
-    {
-        spawnPointGroups = new List<List<Transform>>
-        {
-            UpSpawnPos,
-            RightSpawnPos,
-            DownSpawnPos,
-            LeftSpawnPos
-        };
-    }
-
-    private void Start()
+    public override void OnNetworkSpawn()
     {
         if (IsServer)
         {
-            carSpawner = FindFirstObjectByType<CarSpawner>();
-            if (carSpawner == null) Debug.LogError("CarSpawner not found");
+            allSpawnPoints = new List<Transform>();
+            allSpawnPoints.AddRange(UpSpawnPoints);
+            allSpawnPoints.AddRange(RightSpawnPoints);
+            allSpawnPoints.AddRange(DownSpawnPoints);
+            allSpawnPoints.AddRange(LeftSpawnPoints);
         }
     }
 
-    public void SetQuadrant(int quadrant)
+    public void SetPlayerQuadrant(int quadrant)
     {
         myQuadrant = quadrant;
+
+        if (IsServer)
+        {
+            Debug.Log($"Player {OwnerClientId} assigned to quadrant {quadrant}");
+        }
     }
 
-    public void EnableMySpawnPoints()
+    [ServerRpc(RequireOwnership = false)]
+    public void EnableMySpawnPointsServerRpc()
     {
         if (!IsServer) return;
 
-        switch (myQuadrant)
+        EnableSpawnPointsForQuadrant(myQuadrant);
+    }
+
+    private void EnableSpawnPointsForQuadrant(int quadrant)
+    {
+        foreach (Transform point in allSpawnPoints)
         {
-            case 1://top right
-                EnableSpawnPointsInQuadrant(1, JunctionSpawnDirection.Up);
-                EnableSpawnPointsInQuadrant(1, JunctionSpawnDirection.Right);
-                DisableSpawnPointsInQuadrant(4, JunctionSpawnDirection.Up);
-                break;
+            point.gameObject.SetActive(false);
+        }
 
-            case 2://top left
-                EnableSpawnPointsInQuadrant(2, JunctionSpawnDirection.Up);
-                EnableSpawnPointsInQuadrant(2, JunctionSpawnDirection.Left);
-                DisableSpawnPointsInQuadrant(1, JunctionSpawnDirection.Left);
-                break;
+        switch (quadrant)
+        {
+            case 1: //top right
+                EnablePoints(myQuadrant, UpSpawnPoints);
+                EnablePoints(myQuadrant, RightSpawnPoints);
+                EnablePoints(myQuadrant, LeftSpawnPoints);
 
-            case 3://bottom left
-                EnableSpawnPointsInQuadrant(3, JunctionSpawnDirection.Down);
-                EnableSpawnPointsInQuadrant(3, JunctionSpawnDirection.Left);
-                DisableSpawnPointsInQuadrant(2, JunctionSpawnDirection.Down);
-                DisableSpawnPointsInQuadrant(4, JunctionSpawnDirection.Left);
+                DisablePoints(4, DownSpawnPoints);
                 break;
-
-            case 4://bottom right - host
-                EnableSpawnPointsInQuadrant(4, JunctionSpawnDirection.Up);
-                EnableSpawnPointsInQuadrant(4, JunctionSpawnDirection.Right);
-                EnableSpawnPointsInQuadrant(4, JunctionSpawnDirection.Down);
-                EnableSpawnPointsInQuadrant(4, JunctionSpawnDirection.Left);
+            case 2: //top left
+                EnablePoints(myQuadrant, UpSpawnPoints);
+                EnablePoints(myQuadrant, LeftSpawnPoints);
+                break;
+            case 3: //bottom left
+                EnablePoints(myQuadrant, DownSpawnPoints);
+                EnablePoints(myQuadrant, LeftSpawnPoints);
+                break;
+            case 4: //bottom right
+                EnablePoints(myQuadrant, DownSpawnPoints);
+                EnablePoints(myQuadrant, RightSpawnPoints);
                 break;
         }
     }
 
-    public void DisableSpawnPointsInQuadrant(int quadrant, JunctionSpawnDirection direction)
+    //doesnt find the other player - also dont want it to be recursive =================================
+    private void EnablePoints(int quad, List<Transform> points)
     {
-        //need to use quadrant to apply changes to correct players area================================
-        if (!IsServer) return;
+        GameObject player = PlayerSpawner.instance.GetPlayerInQuadrant(quad);
 
-        int dir = (int)direction;
-        Debug.Log($"SERVER disabling quadrant {quadrant} dir {direction} ({dir})");
-
-        BroadcastSpawnPointState(dir, false);
-    }
-
-    public void EnableSpawnPointsInQuadrant(int quadrant, JunctionSpawnDirection direction)
-    {
-        if (!IsServer) return;
-
-        int dir = (int)direction;
-        Debug.Log($"SERVER enabling quadrant {quadrant} dir {direction} ({dir})");
-
-        BroadcastSpawnPointState(dir, true);
-    }
-
-    private void BroadcastSpawnPointState(int dir, bool state)
-    {
-        SetSpawnPointStateClientRpc(dir, state);
-        SetSpawnPointStateLocal(dir, state);
-    }
-
-    [ClientRpc]
-    private void SetSpawnPointStateClientRpc(int dir, bool state)
-    {
-        SetSpawnPointStateLocal(dir, state);
-    }
-
-    private void SetSpawnPointStateLocal(int dir, bool state)
-    {
-        try
+        if (myQuadrant != quad && player != null)
         {
-            var spawnPoint = spawnPointGroups[dir][0].gameObject;
-            spawnPoint.GetComponentInParent<Transform>().gameObject.SetActive(state);
+            player.GetComponent<PlayerSpawnController>().EnablePoints(quad, points);
         }
-        catch (Exception e)
+        else
         {
-            Debug.LogError($"spawn point error: {e.Message}");
+            Debug.LogWarning($"no player found in quadrant {quad} to enable points");
+        }
+
+        foreach (Transform point in points)
+        {
+            point.gameObject.SetActive(true);
         }
     }
 
-    public enum JunctionSpawnDirection
+    private void DisablePoints(int quad, List<Transform> points)
     {
-        Up,
-        Right,
-        Down,
-        Left
+        GameObject player = PlayerSpawner.instance.GetPlayerInQuadrant(quad);
+
+        if (myQuadrant != quad && player != null)
+        {
+            player.GetComponent<PlayerSpawnController>().DisablePoints(quad, points);
+        }
+        else
+        {
+            Debug.LogWarning($"no player found in quadrant {quad} to disable points");
+        }
+
+        foreach (Transform point in points)
+        {
+            point.gameObject.SetActive(false);
+        }
     }
+
 }
