@@ -460,21 +460,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
-  UpSpawnPos:
-  - {fileID: 2258400727122398689}
+  UpSpawnPoints:
   - {fileID: 7151032017253133394}
+  - {fileID: 2258400727122398689}
   - {fileID: 8785038130236721961}
-  RightSpawnPos:
-  - {fileID: 9189266309968002102}
+  RightSpawnPoints:
   - {fileID: 6588691589184066607}
+  - {fileID: 9189266309968002102}
   - {fileID: 846088811069103815}
-  DownSpawnPos:
-  - {fileID: 3012636387444745149}
+  DownSpawnPoints:
   - {fileID: 1451306328823001193}
+  - {fileID: 3012636387444745149}
   - {fileID: 4699432110450093451}
-  LeftSpawnPos:
-  - {fileID: 4654729215682443947}
+  LeftSpawnPoints:
   - {fileID: 3011053732560785878}
+  - {fileID: 4654729215682443947}
   - {fileID: 7844012167021793171}
 --- !u!1 &4599840497751516076
 GameObject:
