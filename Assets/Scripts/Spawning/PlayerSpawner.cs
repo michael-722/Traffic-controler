@@ -1,8 +1,8 @@
-using System;
+using UnityEngine;
+using Unity.Netcode;
 using System.Collections;
 using System.Collections.Generic;
-using Unity.Netcode;
-using UnityEngine;
+
 
 public class PlayerSpawner : NetworkBehaviour
 {
@@ -13,9 +13,12 @@ public class PlayerSpawner : NetworkBehaviour
 
     private Vector3 centerPoint;
     private int nextSpawnIndex = 0;
+
     private Dictionary<ulong, int> playerQuadrantMap = new Dictionary<ulong, int>();
     private List<ulong> spawnedPlayers = new List<ulong>();
+    private Dictionary<ulong, PlayerSpawnController> playerControllers = new Dictionary<ulong, PlayerSpawnController>();
 
+    #region SETUP
     private void Awake()
     {
         if (spawnPoints.Count > 0)
@@ -41,7 +44,11 @@ public class PlayerSpawner : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
-        NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnected;
+        if (IsServer)
+        {
+            NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnected;
+            NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnected;
+        }
     }
 
     private void OnClientConnected(ulong clientId)
@@ -50,10 +57,16 @@ public class PlayerSpawner : NetworkBehaviour
         SpawnPlayer(clientId);
     }
 
-    private void SpawnPlayer(ulong clientId)
+    private void OnClientDisconnected(ulong clientId)
     {
         if (!IsServer) return;
-        
+        HandlePlayerDisconnected(clientId);
+    }
+    #endregion
+
+    #region PLAYER SPAWNING
+    private void SpawnPlayer(ulong clientId)
+    {
         Transform spawnPoint = spawnPoints[nextSpawnIndex];
         nextSpawnIndex = (nextSpawnIndex + 1) % spawnPoints.Count;
 
@@ -73,17 +86,17 @@ public class PlayerSpawner : NetworkBehaviour
             yield return null;
         }
 
-        //seetting spawn quad
+        //setting spawn quad
         int quadrant = GetQuadrantFromPosition(spawnPoint.position);
         playerQuadrantMap[networkObject.OwnerClientId] = quadrant;
         spawnedPlayers.Add(networkObject.OwnerClientId);
 
-        var playerSpawnController = obj.GetComponent<PlayerSpawnController>();
-        if (playerSpawnController != null)
-        {
-            playerSpawnController.SetPlayerQuadrant(quadrant);
-            HandleNewPlayerConnections(networkObject.OwnerClientId);
-        }
+        PlayerSpawnController playerSpawnController = obj.GetComponent<PlayerSpawnController>();
+
+        //store controller ref
+        playerControllers[networkObject.OwnerClientId] = playerSpawnController;
+        playerSpawnController.SetPlayerQuadrant(quadrant);
+        HandleNewPlayerConnections(networkObject.OwnerClientId);
     }
 
     private void HandleNewPlayerConnections(ulong newPlayerId)
@@ -91,12 +104,10 @@ public class PlayerSpawner : NetworkBehaviour
         int newPlayerQuadrant = GetPlayerQuadrant(newPlayerId);
         PlayerSpawnController newPlayerController = GetPlayerController(newPlayerId);
 
-        if (newPlayerController == null) return;
-
         //base spawn pos set
         newPlayerController.ConfigureSpawnPoints();
 
-        //chcek adjacent players     -1 no slef check
+        //check adjacent players
         for (int i = 0; i < spawnedPlayers.Count - 1; i++)
         {
             ulong existingPlayerId = spawnedPlayers[i];
@@ -177,7 +188,122 @@ public class PlayerSpawner : NetworkBehaviour
                 break;
         }
     }
+    #endregion
 
+    #region PLAYER DISCONNECTING
+    private void HandlePlayerDisconnected(ulong clientId)
+    {
+        int disconnectedPlayerQuadrant = GetPlayerQuadrant(clientId);
+
+        if (playerQuadrantMap.ContainsKey(clientId))
+        {
+            playerQuadrantMap.Remove(clientId);
+        }
+
+        if (spawnedPlayers.Contains(clientId))
+        {
+            spawnedPlayers.Remove(clientId);
+        }
+
+        if (playerControllers.ContainsKey(clientId))
+        {
+            playerControllers.Remove(clientId);
+        }
+
+        if (disconnectedPlayerQuadrant != -1)//check if vaild before reenabling spawn points
+        {
+            ReenableSpawnPointsForDisconnectedPlayer(clientId, disconnectedPlayerQuadrant);
+        }
+    }
+
+    private void ReenableSpawnPointsForDisconnectedPlayer(ulong disconnectedPlayerId, int disconnectedPlayerQuadrant)
+    {
+        foreach (ulong remainingPlayerId in spawnedPlayers)
+        {
+            if (remainingPlayerId == disconnectedPlayerId) continue;
+
+            int remainingPlayerQuadrant = GetPlayerQuadrant(remainingPlayerId);
+            PlayerSpawnController remainingPlayerController = GetPlayerController(remainingPlayerId);
+
+            //check adjacency
+            if (AreQuadrantsAdjacent(remainingPlayerQuadrant, disconnectedPlayerQuadrant))
+            {
+                //re enable spawn points for remaining areas
+                ReenableAdjacentSpawnPoints(remainingPlayerController, remainingPlayerQuadrant, disconnectedPlayerQuadrant, remainingPlayerId);
+            }
+        }
+    }
+
+    private void ReenableAdjacentSpawnPoints(PlayerSpawnController playerController, int playerQuadrant, int adjacentQuadrant, ulong playerId)
+    {
+        List<Transform> pointsToReenable = new List<Transform>();
+        string direction = "";
+
+        switch (playerQuadrant)
+        {
+            case 4://bottom right
+                if (adjacentQuadrant == 1)//top right
+                {
+                    pointsToReenable = playerController.GetSpawnPointsByDirection("up");
+                    direction = "up";
+                }
+                else if (adjacentQuadrant == 3)//bottom left
+                {
+                    pointsToReenable = playerController.GetSpawnPointsByDirection("left");
+                    direction = "left";
+                }
+                break;
+
+            case 1: //top right
+                if (adjacentQuadrant == 4)//bottom right
+                {
+                    pointsToReenable = playerController.GetSpawnPointsByDirection("down");
+                    direction = "down";
+                }
+                else if (adjacentQuadrant == 2)//top left
+                {
+                    pointsToReenable = playerController.GetSpawnPointsByDirection("left");
+                    direction = "left";
+                }
+                break;
+
+            case 2://top left
+                if (adjacentQuadrant == 1)//top right
+                {
+                    pointsToReenable = playerController.GetSpawnPointsByDirection("right");
+                    direction = "right";
+                }
+                else if (adjacentQuadrant == 3)//bottom left
+                {
+                    pointsToReenable = playerController.GetSpawnPointsByDirection("down");
+                    direction = "down";
+                }
+                break;
+
+            case 3://bottom left
+                if (adjacentQuadrant == 2)//top left
+                {
+                    pointsToReenable = playerController.GetSpawnPointsByDirection("up");
+                    direction = "up";
+                }
+                else if (adjacentQuadrant == 4)//bottom right
+                {
+                    pointsToReenable = playerController.GetSpawnPointsByDirection("right");
+                    direction = "right";
+                }
+                break;
+        }
+
+        //reenable spawn points - server + client
+        if (pointsToReenable.Count > 0 && !string.IsNullOrEmpty(direction))
+        {
+            playerController.ReenableSpawnPoints(pointsToReenable);
+            playerController.ReenableSpawnPointsClientRpc(direction, playerId);
+        }
+    }
+    #endregion
+
+    #region HELPERS
     private bool AreQuadrantsAdjacent(int quadrant1, int quadrant2)
     {
         switch (quadrant1)
@@ -197,6 +323,11 @@ public class PlayerSpawner : NetworkBehaviour
 
     private PlayerSpawnController GetPlayerController(ulong clientId)
     {
+        if (playerControllers.ContainsKey(clientId))
+        {
+            return playerControllers[clientId];
+        }
+
         if (NetworkManager.Singleton.ConnectedClients.TryGetValue(clientId, out NetworkClient client))
         {
             if (client.PlayerObject != null)
@@ -233,4 +364,5 @@ public class PlayerSpawner : NetworkBehaviour
         }
         return -1;
     }
+    #endregion
 }

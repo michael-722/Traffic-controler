@@ -123,7 +123,7 @@ public class Relay : MonoBehaviour
 
     public void Dissconect()
     {
-        Dissconnection(NetworkManager.Singleton.LocalClientId);
+        NetworkManager.Singleton.Shutdown();
     }
 
     public void Connection(ulong id)
