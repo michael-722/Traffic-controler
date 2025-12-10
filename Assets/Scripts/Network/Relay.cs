@@ -12,7 +12,7 @@ using UnityEngine;
 
 //to cal ping save time msg sent and then time recieve response then t1 - t0 gives ping 
 
-public class Relay : MonoBehaviour
+public class Relay : NetworkBehaviour
 {
     public event Action<string> joinCodeCreated;
     public event Action<string> ipAddressFetched;
@@ -102,7 +102,8 @@ public class Relay : MonoBehaviour
         }
         catch (Exception e)
         {
-            if (e.Message.Contains("invalid request")) dissconnectMsg.Invoke("Invalid join code Please enter vaild code");
+            if (e.Message.Contains("invalid request")) dissconnectMsg.Invoke("Invalid join code\nPlease enter vaild code");
+            else if (e.Message.Contains("Not Found")) dissconnectMsg.Invoke("Game not found\nPlease check join code");
 
             Debug.LogError($"failed to join relay: {e.Message}");
         }
@@ -123,7 +124,9 @@ public class Relay : MonoBehaviour
 
     public void Dissconect()
     {
-        NetworkManager.Singleton.Shutdown();
+        Debug.Log("dissconnecting");
+        if (NetworkManager.Singleton.IsServer) DisconnectAllPlayersServerRpc();
+        else NetworkManager.Singleton.Shutdown();
     }
 
     public void Connection(ulong id)
@@ -139,44 +142,47 @@ public class Relay : MonoBehaviour
 
     public void Dissconnection(ulong id)
     {
+        //Debug.Log("disconnect reason: " + NetworkManager.Singleton.DisconnectReason);
+
+        if (connectedPlayerIds.Contains(id))
+        {
+            //Debug.Log("dissconeted player id: " + id);
+
+            connectedPlayerIds.Remove(id);
+            ConnectionLost();
+        }
+        else Debug.LogWarning($"player {id} has already disconnected");
+
         //server dc
         if (id == serverID)
         {
             //Debug.Log("Host disconnected");
 
-            ConnectionLost();
-            DisconnectAllPlayersServerRpc();
-
-            connectedPlayerIds.Remove(id);
+            connectedPlayerIds.Clear();
 
             NetworkManager.Singleton.Shutdown();
-            return;
         }
 
-        //client dc
-        if (connectedPlayerIds.Contains(id))
-        {
-            //Debug.Log("dissconeted player id: " + id);
-            connectedPlayerIds.Remove(id);
-            connectedPlayerCountChange?.Invoke(connectedPlayerIds.Count);
-            ConnectionLost();
-        }
-        else Debug.LogWarning($"player {id} has already disconnected");
+        connectedPlayerCountChange?.Invoke(connectedPlayerIds.Count);
     }
 
     private void ConnectionLost()
     {
-        dissconnectMsg.Invoke("Host has disconnected Please leave game");
+        dissconnectMsg.Invoke("Host has disconnected\nPlease leave game");
     }
 
     [ServerRpc]
     public void DisconnectAllPlayersServerRpc()
     {
+        Debug.Log("dissconnecting all players");
         for (int i = connectedPlayerIds.Count - 1; i >= 1; i--)
         {
+            Debug.Log("dissconnecting player id: " + connectedPlayerIds[i]);
             ulong playerId = connectedPlayerIds[i];
             NetworkManager.Singleton.DisconnectClient(playerId);
         }
+        
+        NetworkManager.Singleton.Shutdown();
     }
 
     public void CreateLAN()

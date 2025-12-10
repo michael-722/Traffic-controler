@@ -37,6 +37,7 @@ public class UIManager : MonoBehaviour
 
     public void JoinLANBtn()
     {
+        ResetUIText();
         OnJoinLANPressed?.Invoke(ipInput.text);
     }
 
@@ -47,6 +48,7 @@ public class UIManager : MonoBehaviour
 
     public void StartClientBtn()
     {
+        ResetUIText();
         OnStartClientPressed?.Invoke(joinCodeInput.text.Trim());
         //need to wait till connection is set bc rn client is server so runs locally
     }
@@ -54,7 +56,11 @@ public class UIManager : MonoBehaviour
     public void DissconnectBtn()
     {
         OnDissconnectPressed?.Invoke();
+        ResetUIText();
+    }
 
+    private void ResetUIText()
+    {
         //reset that may have been changed
         joinCodeDisplay.text = "Generating code...";
         playersConnectedCount.text = "Connected players: 0";
@@ -80,7 +86,7 @@ public class UIManager : MonoBehaviour
         playersConnectedCountLAN.text = "Players connected: " + (num - 1);
     }
 
-    public void UpdateJoinedWaitingTextClientRpc(string msg)
+    public void UpdateJoinedWaitingText(string msg)
     {
         joinedWaiting.text = msg;
         joinedWaiting.color = Color.red;

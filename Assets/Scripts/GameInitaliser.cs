@@ -26,7 +26,7 @@ public class GameInitaliser : MonoBehaviour
 
         relay.joinCodeCreated += ui.DisplayJoinCode;
         relay.connectedPlayerCountChange += ui.UpdateConnectedPlayerCount;
-        relay.dissconnectMsg += ui.UpdateJoinedWaitingTextClientRpc;
+        relay.dissconnectMsg += ui.UpdateJoinedWaitingText;
         relay.ipAddressFetched += ui.DisplayIpAdress;
     }
 
