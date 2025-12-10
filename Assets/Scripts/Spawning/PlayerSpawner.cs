@@ -62,13 +62,36 @@ public class PlayerSpawner : NetworkBehaviour
         if (!IsServer) return;
         HandlePlayerDisconnected(clientId);
     }
-    #endregion
-
-    #region PLAYER SPAWNING
     private void SpawnPlayer(ulong clientId)
     {
-        Transform spawnPoint = spawnPoints[nextSpawnIndex];
-        nextSpawnIndex = (nextSpawnIndex + 1) % spawnPoints.Count;
+        //check quad map for available quads
+        Transform spawnPoint = null;
+        int spawnIndex = -1;
+        for (int i = 0; i < spawnPoints.Count; i++)
+        {
+            int quadrant = GetQuadrantFromPosition(spawnPoints[i].position);
+            bool spotTaken = false;
+            foreach (var quad in playerQuadrantMap)
+            {
+                if (quad.Value == quadrant)
+                {
+                    spotTaken = true;
+                    break;
+                }
+            }
+            if (!spotTaken)
+            {
+                spawnPoint = spawnPoints[i];
+                spawnIndex = i;
+                break;
+            }
+        }
+        
+        if (spawnPoint == null)
+        {
+            Debug.LogWarning("All quads are taken - max 4 players");
+            return;
+        }
 
         GameObject playerInstance = Instantiate(playerPrefab, spawnPoint.position, spawnPoint.rotation);
         playerInstance.GetComponent<NetworkObject>().SpawnAsPlayerObject(clientId, true);

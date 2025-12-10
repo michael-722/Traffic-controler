@@ -29,10 +29,7 @@ public class PlayerSpawnController : NetworkBehaviour
     {
         myQuadrant = quadrant;
 
-        if (IsServer)
-        {
-            Debug.Log($"player {OwnerClientId} assigned to quadrant {quadrant}");
-        }
+        //if (IsServer) Debug.Log($"player {OwnerClientId} assigned to quadrant {quadrant}");
     }
 
     private void EnablePoints(List<Transform> points)
