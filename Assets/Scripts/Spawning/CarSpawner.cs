@@ -45,6 +45,7 @@ public class CarSpawner : NetworkBehaviour
     private void Update()
     {
         if (!canSpawn || !IsServer) return;
+
         spawnTimer += Time.deltaTime;
         if (spawnTimer >= spawnInterval && spawnedCars.Count < GetMaxCars())
         {

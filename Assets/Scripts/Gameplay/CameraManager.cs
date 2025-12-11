@@ -32,7 +32,7 @@ public class CameraManager : MonoBehaviour
     {
         HandleMovement();
         HandleZoom();
-        if (IsOutsideArea(transform.position))
+        if (IsOutsideArea())
         {
             //trigger player zone pulsing=================================
             //need to set up mby with panel and circle img can create circle cut out with transparancy?
@@ -69,8 +69,9 @@ public class CameraManager : MonoBehaviour
         }
     }
 
-    bool IsOutsideArea(Vector3 pos)
+    public bool IsOutsideArea()
     {
+        Vector3 pos = transform.position;
         return pos.x < minX || pos.x > maxX || pos.z < minZ || pos.z > maxZ;
     }
 
@@ -82,5 +83,11 @@ public class CameraManager : MonoBehaviour
         maxX = areaCenter.x + areaSize.x / 2f;
         minZ = areaCenter.y - areaSize.y / 2f;
         maxZ = areaCenter.y + areaSize.y / 2f;
+    }
+
+    public float GetDistanceFromCenter()
+    {
+        Vector2 camPosFlat = new Vector2(transform.position.x, transform.position.z);
+        return Vector2.Distance(camPosFlat, areaCenter);
     }
 }

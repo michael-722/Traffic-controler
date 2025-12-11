@@ -13,7 +13,7 @@ public class PlayerSpawnController : NetworkBehaviour
 
     private List<Transform> allSpawnPoints;
 
-    public override void OnNetworkSpawn()
+    private void Awake()
     {
         if (IsServer)
         {
@@ -46,6 +46,7 @@ public class PlayerSpawnController : NetworkBehaviour
 
         //Debug.Log($"setting spawn points for player {OwnerClientId} quad {myQuadrant}");
 
+        if (allSpawnPoints == null) return;
         foreach (Transform point in allSpawnPoints)
         {
             point.gameObject.SetActive(false);

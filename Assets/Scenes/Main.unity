@@ -8537,7 +8537,7 @@ MonoBehaviour:
   carPrefab: {fileID: 2518101569010541112, guid: c82ab4daa247a954ba19d99b550c894b, type: 3}
   spawnInterval: 3
   carsPerPlayer: 5
-  spawnTag: CanSpawn
+  spawnTag: SpawnPoint
 --- !u!4 &1972652978
 Transform:
   m_ObjectHideFlags: 0
