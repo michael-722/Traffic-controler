@@ -10,6 +10,7 @@ public class CarController : NetworkBehaviour
 
     private float roadWidth;
     private float carWidth;
+    private float carLength;
 
     private Rigidbody rb;
     private bool waitingAtLight = false;
@@ -40,6 +41,7 @@ public class CarController : NetworkBehaviour
     {
         rb = GetComponent<Rigidbody>();
         carWidth = GetCarWidth();
+        carLength = GetCarLenght();
         roadWidth = 14f;
 
         //only have enabled if roads need re calarating
@@ -55,6 +57,15 @@ public class CarController : NetworkBehaviour
     {
         Collider col = GetComponentInChildren<Collider>();
         if (col != null) return col.bounds.size.x;
+
+        Debug.LogWarning(name + " car has no collider");
+        return 0f;
+    }
+
+    private float GetCarLenght()
+    {
+        Collider col = GetComponentInChildren<Collider>();
+        if (col != null) return col.bounds.size.z;
 
         Debug.LogWarning(name + " car has no collider");
         return 0f;
@@ -91,17 +102,25 @@ public class CarController : NetworkBehaviour
             Debug.LogError("junction controller not found on obj");
             return;
         }
-
+        
         if (rearTriggerInstance != null && trigger.gameObject == rearTriggerInstance) return;
+         
+        Vector3 triggerCenter = trigger.bounds.center;
+        Vector3 carPosition = transform.position;
 
-        //need to add check if colliding with vaild trigger re adjust pos to correct pos bsed of trigger - since then itll always reset the cars pos so it doesnt drift 
-        //doesnt drift much rn but it does a bit so need to look into==================================================================================================
-        /*if (gameObject.transform.rotation.eulerAngles.y == 0 || gameObject.transform.rotation.eulerAngles.y == 180)//180 + 0 same case -90 + 90 same case for alligining
+        //entry axis
+        switch (entryDirection)
         {
-            
-            //x
-        }*/
-        //z
+            case JunctionDirection.Up:
+            case JunctionDirection.Down:
+                carPosition.x = triggerCenter.x;
+                break;
+            case JunctionDirection.Left:
+            case JunctionDirection.Right:
+                carPosition.z = triggerCenter.z;
+                break;
+        }
+        rb.MovePosition(carPosition);
         
 
         rearTriggerInstance = trigger.gameObject;
@@ -174,11 +193,13 @@ public class CarController : NetworkBehaviour
         {
             case 90:
                 //right indicator
+                leftBlinkers.setBlinkers(false);
                 rightBlinkers.setBlinkers(true);
                 break;
             case -90:
                 //left indicator
                 leftBlinkers.setBlinkers(true);
+                rightBlinkers.setBlinkers(false);
                 break;
             case 0:
                 //no indicator
@@ -303,10 +324,9 @@ public class CarController : NetworkBehaviour
 
     private float GetTurnDistance(JunctionDirection entryDir, JunctionDirection newDir)
     {
-        float laneOffset = carWidth / 2f;//lane center 
-        float turnRadius = roadWidth / 2f;//turning rad
+        float rightTurnDist = (roadWidth / carLength) * 3.75f;
+        float leftTurnDist = (roadWidth / carLength) * 1.75f;
 
-        //Debug.Log("lane offset: " + laneOffset + " turn radius: " + turnRadius);
         //Debug.Log($"{name} turn from {entryDir} to {newDir}"); 
 
         if (newDir == entryDir) return 0f;//straight
@@ -314,11 +334,10 @@ public class CarController : NetworkBehaviour
         int turnAngle = (int)GetTurnAngle(entryDir, newDir);
 
         //left turn
-        if (turnAngle == -90) return turnRadius;//narrow
+        if (turnAngle == -90) return leftTurnDist;//narrow
         //right turn
-        else if (turnAngle == 90)return roadWidth;//wide
-
-        return 0f;
+        else if (turnAngle == 90) return rightTurnDist;//wide
+        else return 0f;
     }
 
     private JunctionDirection GetDirectionFromTrigger(string triggerName)
