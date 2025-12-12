@@ -317,9 +317,9 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   driveSpeed: 10
   turnSpeed: 2
-  roadTransform: {fileID: 0}
   leftBlinkers: {fileID: 4026992468024112592}
   rightBlinkers: {fileID: 2000010010341358282}
+  roadTransform: {fileID: 0}
 --- !u!114 &4857451669809382901
 MonoBehaviour:
   m_ObjectHideFlags: 0

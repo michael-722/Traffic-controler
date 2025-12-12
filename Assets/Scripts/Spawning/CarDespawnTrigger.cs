@@ -3,14 +3,20 @@ using UnityEngine;
 
 public class CarDespawnTrigger : MonoBehaviour
 {
+    private NetworkObject rootNetObj;
+
+    private void Start()
+    {
+        PlayerSpawnController playerSpawnController = FindFirstObjectByType<PlayerSpawnController>();
+        rootNetObj = playerSpawnController.gameObject.GetComponent<NetworkObject>();
+    }
 
     private void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Car"))
         {
             CarSpawner.Instance.DespawnCar(other.gameObject.GetComponent<NetworkObject>());
-            //socre
-            //update car spawner
+            PlayerScoreManager.Instance.increaseScoreServerRpc(rootNetObj.OwnerClientId, 1);
         }
     }
 }

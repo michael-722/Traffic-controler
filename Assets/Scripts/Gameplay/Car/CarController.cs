@@ -5,48 +5,49 @@ using Unity.Netcode;
 
 public class CarController : NetworkBehaviour
 {
+    #region VARS
     [SerializeField] private float driveSpeed = 7.5f;
     [SerializeField] private float turnSpeed = 2.0f;
 
-    private float roadWidth;
+    [SerializeField] private BlinkerController leftBlinkers;
+    [SerializeField] private BlinkerController rightBlinkers;
+
+    [SerializeField] private Transform roadTransform;
+
+    private float ROAD_WIDTH;
     private float carWidth;
     private float carLength;
 
     private Rigidbody rb;
     private bool waitingAtLight = false;
-    private bool isMovingInQueue = false;
-    private bool isAdvancingToTrigger = false;
+    private bool isMoving = false;
 
     private TrafficLightController currentLight;
     private JunctionController currentJunction;
     private JunctionDirection entryDirection;
-
-    [SerializeField] private Transform roadTransform;
 
     private NetworkVariable<JunctionDirection> chosenDirection = new NetworkVariable<JunctionDirection>(
     JunctionDirection.Up,
     NetworkVariableReadPermission.Everyone,
     NetworkVariableWritePermission.Server);
 
-    [SerializeField] private BlinkerController leftBlinkers;
-    [SerializeField] private BlinkerController rightBlinkers;
-
     private GameObject rearTriggerInstance = null;
     private bool rearTriggerActive = false;
 
     private bool directionChosen = false;
     private bool isQueued = false;
+    #endregion
 
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
         carWidth = GetCarWidth();
         carLength = GetCarLenght();
-        roadWidth = 14f;
+        ROAD_WIDTH = 14f;
 
         //only have enabled if roads need re calarating
         //road in x dir
-        //roadWidth = GetRoadWidth(roadTransform);
+        //ROAD_WIDTH = GetRoadWidth(roadTransform);
         //Debug.Log($"{name} car width: {carWidth} road width: {roadWidth}");
 
         leftBlinkers.setBlinkers(false);
@@ -82,7 +83,7 @@ public class CarController : NetworkBehaviour
 
     private void FixedUpdate()
     {
-        if (!waitingAtLight && !isMovingInQueue)
+        if (!waitingAtLight && !isMoving)
         {
             rb.MovePosition(transform.position + transform.forward * driveSpeed * Time.fixedDeltaTime);
         }
@@ -90,7 +91,6 @@ public class CarController : NetworkBehaviour
 
     private void OnTriggerEnter(Collider trigger)
     {
-
         if (!IsServer) return;
 
         //check if is junction trigger
@@ -120,8 +120,7 @@ public class CarController : NetworkBehaviour
                 carPosition.z = triggerCenter.z;
                 break;
         }
-        rb.MovePosition(carPosition);
-        
+        rb.MovePosition(carPosition);    
 
         rearTriggerInstance = trigger.gameObject;
         entryDirection = GetDirectionFromTrigger(trigger.name);
@@ -158,17 +157,12 @@ public class CarController : NetworkBehaviour
         if (currentLight == null)
         {
             waitingAtLight = false;
-            //null bc triggers on roads where cars spawn need to do more work S
-            //dynamically remove triggers when no lights? -> handel in junction controller=============================================== 
-
+            
             //Debug.LogWarning($"{name} no traffic light found for junction at {trigger.transform.parent.parent.name} from dir {entryDirection}");
             return;
         }
 
-        if (isAdvancingToTrigger) return;
-
-        if (!directionChosen) DetermineNextDirection();
-
+        DetermineNextDirection();
         StartCoroutine(HandleTrafficLight());
     }
 
@@ -218,13 +212,12 @@ public class CarController : NetworkBehaviour
     {
         waitingAtLight = true;
 
-        //keep checking traffic light state
+        //wait at light
         while (waitingAtLight)
         {
             TrafficLightState lightState = currentLight.GetCurrentState();
-            //Debug.Log($"{name} sees {currentLight.name} as {lightState}");
 
-            //wait
+            //wait when red/yellow
             if (lightState == TrafficLightState.Red || lightState == TrafficLightState.Yellow)
             {
                 if (!rearTriggerActive)
@@ -241,6 +234,7 @@ public class CarController : NetworkBehaviour
                 yield return null;
                 continue;
             }
+            //go/move up when green
             else if (lightState == TrafficLightState.Green)
             {
                 if (rearTriggerActive && rearTriggerInstance != null)
@@ -249,20 +243,18 @@ public class CarController : NetworkBehaviour
                     rearTriggerActive = false;
                 }
 
-                if (isQueued)
+                //not queued
+                if (!isQueued)
                 {
-                    //in que - move forward to main trigger
-
-                    isAdvancingToTrigger = true;//prevent trigger logic from firing
-                    yield return StartCoroutine(MoveForward(8f, driveSpeed));
-                    isAdvancingToTrigger = false;
-
-                    continue;
+                    waitingAtLight = false;
+                    break;
                 }
-
-                //start of que
-                waitingAtLight = false;
-                break;
+                //queued
+                else
+                {
+                    waitingAtLight = false;
+                    yield break;
+                }
             }
 
             yield return null;
@@ -271,9 +263,10 @@ public class CarController : NetworkBehaviour
         StartCoroutine(MoveThroughJunction());
     }
 
+
     private IEnumerator MoveThroughJunction()
     {
-        isMovingInQueue = true;
+        isMoving = true;
 
         JunctionDirection targetDir = chosenDirection.Value;
 
@@ -300,12 +293,12 @@ public class CarController : NetworkBehaviour
         rb.MoveRotation(Quaternion.Euler(euler));
 
         directionChosen = false;
-        isMovingInQueue = false;
+        isMoving = false;
     }
 
     private IEnumerator MoveForward(float distance, float speed)
     {
-        isMovingInQueue = true;
+        isMoving = true;
 
         Vector3 startPosition = rb.position;
         Vector3 targetPosition = startPosition + transform.forward * distance;
@@ -319,24 +312,19 @@ public class CarController : NetworkBehaviour
         }
 
         rb.MovePosition(targetPosition);
-        isMovingInQueue = false;
+        isMoving = false;
     }
 
     private float GetTurnDistance(JunctionDirection entryDir, JunctionDirection newDir)
     {
-        float rightTurnDist = (roadWidth / carLength) * 3.75f;
-        float leftTurnDist = (roadWidth / carLength) * 1.75f;
-
-        //Debug.Log($"{name} turn from {entryDir} to {newDir}"); 
-
-        if (newDir == entryDir) return 0f;//straight
-
+        //Debug.Log($"{name} turn from {entryDir} to {newDir}");  
         int turnAngle = (int)GetTurnAngle(entryDir, newDir);
 
         //left turn
-        if (turnAngle == -90) return leftTurnDist;//narrow
+        if (turnAngle == -90) return ROAD_WIDTH / 2f - 0.6f;
         //right turn
-        else if (turnAngle == 90) return rightTurnDist;//wide
+        else if (turnAngle == 90) return ROAD_WIDTH - 1f;
+        //straight
         else return 0f;
     }
 
