@@ -5,6 +5,8 @@ using System;
 
 public class CarSpawner : NetworkBehaviour
 {
+    public static CarSpawner Instance;
+
     public event Action EnableCarSpawning;
 
     [SerializeField] private GameObject carPrefab;
@@ -18,6 +20,12 @@ public class CarSpawner : NetworkBehaviour
     private List<NetworkObject> spawnedCars = new();
     private List<Transform> spawnPoints = new();
     
+    private void Awake()
+    {
+        if (Instance == null)
+            Instance = this;
+        else Destroy(gameObject);
+    }
 
     public override void OnNetworkSpawn()
     {
@@ -73,6 +81,17 @@ public class CarSpawner : NetworkBehaviour
         NetworkObject netObj = go.GetComponent<NetworkObject>();
         netObj.Spawn(true);
         spawnedCars.Add(netObj);
+    }
+
+    public void DespawnCar(NetworkObject car)
+    {
+        if (!IsServer || car == null) return;
+
+        if (spawnedCars.Contains(car))
+        {
+            car.Despawn(true);
+            spawnedCars.Remove(car);
+        }
     }
 
     private int GetMaxCars()

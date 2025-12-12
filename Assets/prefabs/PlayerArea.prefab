@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6924900685600268114}
   - component: {fileID: 1023459678853340610}
+  - component: {fileID: 6245926787497643002}
   m_Layer: 0
   m_Name: T3despawn
   m_TagString: despawnPoint
@@ -47,12 +48,24 @@ BoxCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 2, y: 2, z: 1}
+  m_Size: {x: 2, y: 7, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &6245926787497643002
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 110971271828571040}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 66d1f4375667e6c449441861d8adc3db, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &172840412418146858
 GameObject:
   m_ObjectHideFlags: 0
@@ -107,6 +120,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6977824077065982492}
   - component: {fileID: 5026710077727346708}
+  - component: {fileID: 3328283562524341008}
   m_Layer: 0
   m_Name: D3despawn
   m_TagString: despawnPoint
@@ -144,12 +158,24 @@ BoxCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 2, y: 2, z: 1}
+  m_Size: {x: 2, y: 7, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &3328283562524341008
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 200342727522344904}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 66d1f4375667e6c449441861d8adc3db, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &248890402881972394
 GameObject:
   m_ObjectHideFlags: 0
@@ -175,7 +201,7 @@ Transform:
   m_GameObject: {fileID: 248890402881972394}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
-  m_LocalPosition: {x: 3.5, y: 0, z: 90}
+  m_LocalPosition: {x: 3.5, y: 2.5, z: 90}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -191,6 +217,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8229254652632980234}
   - component: {fileID: 4376366743921954636}
+  - component: {fileID: 6118720507504617394}
   m_Layer: 0
   m_Name: D2despawn
   m_TagString: despawnPoint
@@ -228,12 +255,24 @@ BoxCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 2, y: 2, z: 1}
+  m_Size: {x: 2, y: 7, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &6118720507504617394
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 437576580128028288}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 66d1f4375667e6c449441861d8adc3db, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &878528268730903055
 GameObject:
   m_ObjectHideFlags: 0
@@ -259,7 +298,7 @@ Transform:
   m_GameObject: {fileID: 878528268730903055}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
-  m_LocalPosition: {x: 3.2, y: 0, z: 90}
+  m_LocalPosition: {x: 3.2, y: 2.5, z: 90}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -275,6 +314,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5700262007240869734}
   - component: {fileID: 1840850976206143208}
+  - component: {fileID: 3987641248716042384}
   m_Layer: 0
   m_Name: L3despawn
   m_TagString: despawnPoint
@@ -312,12 +352,24 @@ BoxCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 2, y: 2, z: 1}
+  m_Size: {x: 2, y: 7, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &3987641248716042384
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 902445184098529115}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 66d1f4375667e6c449441861d8adc3db, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &916760181117750834
 GameObject:
   m_ObjectHideFlags: 0
@@ -459,7 +511,7 @@ Transform:
   m_GameObject: {fileID: 1469254452720396349}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
-  m_LocalPosition: {x: 3.5, y: 0, z: 90}
+  m_LocalPosition: {x: 3.5, y: 2.5, z: 90}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -490,7 +542,7 @@ Transform:
   m_GameObject: {fileID: 1617249236739039882}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
-  m_LocalPosition: {x: 63.5, y: 0, z: 90}
+  m_LocalPosition: {x: 63.5, y: 2.5, z: 90}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -506,6 +558,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2466496732985933654}
   - component: {fileID: 3543925597632298941}
+  - component: {fileID: 2032856770537318760}
   m_Layer: 0
   m_Name: T2despawn
   m_TagString: despawnPoint
@@ -543,12 +596,24 @@ BoxCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 2, y: 2, z: 1}
+  m_Size: {x: 2, y: 7, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &2032856770537318760
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1745145829198223314}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 66d1f4375667e6c449441861d8adc3db, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1997622905889241016
 GameObject:
   m_ObjectHideFlags: 0
@@ -618,7 +683,7 @@ Transform:
   m_GameObject: {fileID: 2155334790851646722}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
-  m_LocalPosition: {x: 63.5, y: 0, z: 90}
+  m_LocalPosition: {x: 63.5, y: 2.5, z: 90}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -702,6 +767,7 @@ GameObject:
   m_Component:
   - component: {fileID: 891730311160584160}
   - component: {fileID: 6227150197352034918}
+  - component: {fileID: 3298125878629882249}
   m_Layer: 0
   m_Name: T1despawn
   m_TagString: despawnPoint
@@ -739,12 +805,24 @@ BoxCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 2, y: 2, z: 1}
+  m_Size: {x: 2, y: 7, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &3298125878629882249
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2820445983896373781}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 66d1f4375667e6c449441861d8adc3db, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &2975642585946745093
 GameObject:
   m_ObjectHideFlags: 0
@@ -755,6 +833,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1728919778187022708}
   - component: {fileID: 3646596742312935037}
+  - component: {fileID: 2637277511828342458}
   m_Layer: 0
   m_Name: L1despawn
   m_TagString: despawnPoint
@@ -792,12 +871,24 @@ BoxCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 2, y: 2, z: 1}
+  m_Size: {x: 2, y: 7, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &2637277511828342458
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2975642585946745093}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 66d1f4375667e6c449441861d8adc3db, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &3125985033855291821
 GameObject:
   m_ObjectHideFlags: 0
@@ -823,7 +914,7 @@ Transform:
   m_GameObject: {fileID: 3125985033855291821}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
-  m_LocalPosition: {x: 63.5, y: 0, z: 90}
+  m_LocalPosition: {x: 63.5, y: 2.5, z: 90}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -854,7 +945,7 @@ Transform:
   m_GameObject: {fileID: 3536448397812441451}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
-  m_LocalPosition: {x: -56.5, y: 0, z: 90}
+  m_LocalPosition: {x: -56.5, y: 2.5, z: 90}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -870,6 +961,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6299741025435227914}
   - component: {fileID: 3334417281649177200}
+  - component: {fileID: 4287873685386408114}
   m_Layer: 0
   m_Name: D1despawn
   m_TagString: despawnPoint
@@ -907,12 +999,24 @@ BoxCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 2, y: 2, z: 1}
+  m_Size: {x: 2, y: 7, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &4287873685386408114
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3818933852608820274}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 66d1f4375667e6c449441861d8adc3db, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &4189019355682319042
 GameObject:
   m_ObjectHideFlags: 0
@@ -1140,6 +1244,7 @@ GameObject:
   - component: {fileID: 1141055896704755679}
   - component: {fileID: 3757426495369660771}
   - component: {fileID: 3053691445858796749}
+  - component: {fileID: 2127157241407557009}
   m_Layer: 0
   m_Name: PlayerArea
   m_TagString: Player
@@ -1303,6 +1408,33 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!54 &2127157241407557009
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4552935491543271796}
+  serializedVersion: 4
+  m_Mass: 0.0000001
+  m_Drag: 0
+  m_AngularDrag: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 0
+  m_IsKinematic: 1
+  m_Interpolate: 0
+  m_Constraints: 126
+  m_CollisionDetection: 0
 --- !u!1 &4745814260280022839
 GameObject:
   m_ObjectHideFlags: 0
@@ -1328,7 +1460,7 @@ Transform:
   m_GameObject: {fileID: 4745814260280022839}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
-  m_LocalPosition: {x: -56.5, y: 0, z: 90}
+  m_LocalPosition: {x: -56.5, y: 2.5, z: 90}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1415,6 +1547,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2972505560259108589}
   - component: {fileID: 935164838571060600}
+  - component: {fileID: 629416155563482750}
   m_Layer: 0
   m_Name: R1despawn
   m_TagString: despawnPoint
@@ -1452,12 +1585,24 @@ BoxCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 2, y: 2, z: 1}
+  m_Size: {x: 2, y: 7, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &629416155563482750
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5333202002704366138}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 66d1f4375667e6c449441861d8adc3db, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &5579395811974474513
 GameObject:
   m_ObjectHideFlags: 0
@@ -1468,6 +1613,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3505332083394642032}
   - component: {fileID: 1169970808280785333}
+  - component: {fileID: 8342508285648377917}
   m_Layer: 0
   m_Name: R3despawn
   m_TagString: despawnPoint
@@ -1505,12 +1651,24 @@ BoxCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 2, y: 2, z: 1}
+  m_Size: {x: 2, y: 7, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &8342508285648377917
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5579395811974474513}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 66d1f4375667e6c449441861d8adc3db, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &5613971491914254891
 GameObject:
   m_ObjectHideFlags: 0
@@ -1521,6 +1679,7 @@ GameObject:
   m_Component:
   - component: {fileID: 164397977589121652}
   - component: {fileID: 7221258760972707690}
+  - component: {fileID: 4555521842836636286}
   m_Layer: 0
   m_Name: L2despawn
   m_TagString: despawnPoint
@@ -1558,12 +1717,24 @@ BoxCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 2, y: 2, z: 1}
+  m_Size: {x: 2, y: 7, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &4555521842836636286
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5613971491914254891}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 66d1f4375667e6c449441861d8adc3db, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &5719211811994499736
 GameObject:
   m_ObjectHideFlags: 0
@@ -1856,7 +2027,7 @@ Transform:
   m_GameObject: {fileID: 7041340264386469666}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
-  m_LocalPosition: {x: -56.5, y: 0, z: 90}
+  m_LocalPosition: {x: -56.5, y: 2.5, z: 90}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1872,6 +2043,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1240230209380637950}
   - component: {fileID: 7847766137022309844}
+  - component: {fileID: 1819137906233987983}
   m_Layer: 0
   m_Name: R2despawn
   m_TagString: despawnPoint
@@ -1909,12 +2081,24 @@ BoxCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 2, y: 2, z: 1}
+  m_Size: {x: 2, y: 7, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &1819137906233987983
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7182206070761832880}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 66d1f4375667e6c449441861d8adc3db, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &8025212325040758958
 GameObject:
   m_ObjectHideFlags: 0
@@ -1940,7 +2124,7 @@ Transform:
   m_GameObject: {fileID: 8025212325040758958}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
-  m_LocalPosition: {x: -56.5, y: 0, z: 90}
+  m_LocalPosition: {x: -56.5, y: 2.5, z: 90}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2015,7 +2199,7 @@ Transform:
   m_GameObject: {fileID: 9047946164165455550}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
-  m_LocalPosition: {x: 3.5, y: 0, z: 90}
+  m_LocalPosition: {x: 3.5, y: 2.5, z: 90}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2090,7 +2274,7 @@ Transform:
   m_GameObject: {fileID: 9122226039253227117}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
-  m_LocalPosition: {x: 63.5, y: 0, z: 90}
+  m_LocalPosition: {x: 63.5, y: 2.5, z: 90}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

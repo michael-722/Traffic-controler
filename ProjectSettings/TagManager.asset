@@ -5,8 +5,8 @@ TagManager:
   serializedVersion: 3
   tags:
   - SpawnPoint
-  - CanSpawn
   - despawnPoint
+  - Car
   layers:
   - Default
   - TransparentFX
