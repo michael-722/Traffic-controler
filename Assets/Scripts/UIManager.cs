@@ -102,12 +102,21 @@ public class UIManager : MonoBehaviour
         {
             case GameState.Lobby:
                 hostUIActive = true;
+                hostUI.SetActive(true);
+                inGameUI.SetActive(false);
+                postGameUI.SetActive(false);
                 break;
             case GameState.Gameplay:
                 hostUIActive = false;
+                hostUI.SetActive(false);
+                inGameUI.SetActive(true);
+                postGameUI.SetActive(false);
                 break;
             case GameState.PostGame:
-                hostUIActive = true;
+                hostUIActive = false;
+                hostUI.SetActive(false);
+                inGameUI.SetActive(false);
+                postGameUI.SetActive(true);
                 break;
         }
     }
