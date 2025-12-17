@@ -13,13 +13,13 @@ public class CarSpawner : NetworkBehaviour
     [SerializeField] private float spawnInterval = 3f;
     [SerializeField] private int carsPerPlayer = 10;
     [SerializeField] private string spawnTag = "CanSpawn";
-    
+
     private bool canSpawn = false;
     private float spawnTimer;
 
     private List<NetworkObject> spawnedCars = new();
     private List<Transform> spawnPoints = new();
-    
+
     private void Awake()
     {
         if (Instance == null)
@@ -85,7 +85,8 @@ public class CarSpawner : NetworkBehaviour
 
     public void DespawnCar(NetworkObject car)
     {
-        if (!IsServer || car == null) return;
+        if (car == null) return;
+        if (!IsServer) return;
 
         if (spawnedCars.Contains(car))
         {
@@ -93,6 +94,27 @@ public class CarSpawner : NetworkBehaviour
             spawnedCars.Remove(car);
         }
     }
+
+
+    [ServerRpc(RequireOwnership = false)]
+    public void DespawnCarServerRpc(int id)
+    {
+        if (!spawnedCars.Contains(spawnedCars[id]))
+        {
+            Debug.Log("failed");
+            return;
+        }
+
+        spawnedCars[id].Despawn(true);
+        spawnedCars.RemoveAt(id);
+    }
+
+    public int getCarId()
+    {
+        if (!IsServer) 
+    }
+
+    private int getCarIdServerRpc
 
     private int GetMaxCars()
     {

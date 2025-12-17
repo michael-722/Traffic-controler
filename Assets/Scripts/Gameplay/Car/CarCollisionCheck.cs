@@ -27,6 +27,6 @@ public class CarCollisionCheck : MonoBehaviour
     {
         yield return new WaitForSecondsRealtime(despawnTimer);
 
-        CarSpawner.Instance.DespawnCar(gameObject.GetComponent<NetworkObject>());
+        CarSpawner.Instance.DespawnCarServerRpc();
     }
 }
