@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1258981545136752684}
   - component: {fileID: 3480050053374884394}
+  - component: {fileID: 8882234404318419777}
   m_Layer: 0
   m_Name: DebugConsole
   m_TagString: Untagged
@@ -46,3 +47,24 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   referenceResolution: {x: 1920, y: 1080}
   consoleScale: 2
+--- !u!114 &8882234404318419777
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5174322023489047132}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 17737e0516da2445b9b0077ae2bd9b4f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Visible: 1
+  m_MaxRefreshRate: 30
+  <CustomStyleSheet>k__BackingField: {fileID: 0}
+  <PanelSettingsOverride>k__BackingField: {fileID: 0}
+  <Position>k__BackingField:
+    <OverridePosition>k__BackingField: 1
+    m_PositionLeftToRight: 0
+    m_PositionTopToBottom: 0
+  <Configuration>k__BackingField: {fileID: 11400000, guid: 8f1b4e3792d8446399527749cfb591a2, type: 2}

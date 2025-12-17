@@ -36,6 +36,8 @@ public class CarController : NetworkBehaviour
 
     private bool directionChosen = false;
     private bool isQueued = false;
+
+    private bool hasCrashed = false;
     #endregion
 
     private void Awake()
@@ -83,6 +85,7 @@ public class CarController : NetworkBehaviour
 
     private void FixedUpdate()
     {
+        if (hasCrashed) return;
         if (!waitingAtLight && !isMoving)
         {
             rb.MovePosition(transform.position + transform.forward * driveSpeed * Time.fixedDeltaTime);
@@ -389,5 +392,10 @@ public class CarController : NetworkBehaviour
                 break;
         }
         return 0f;
+    }
+
+    public void setHasCrashed(bool state)
+    {
+        hasCrashed = state;
     }
 }

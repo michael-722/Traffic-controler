@@ -124,7 +124,7 @@ public class Relay : NetworkBehaviour
 
     public void Dissconect()
     {
-        Debug.Log("dissconnecting");
+        //Debug.Log("dissconnecting");
         if (NetworkManager.Singleton.IsServer) DisconnectAllPlayersServerRpc();
         else NetworkManager.Singleton.Shutdown();
     }
