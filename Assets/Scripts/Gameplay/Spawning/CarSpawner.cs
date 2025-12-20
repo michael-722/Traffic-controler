@@ -17,13 +17,15 @@ public class CarSpawner : NetworkBehaviour
     private bool canSpawn = false;
     private float spawnTimer;
 
-    private List<NetworkObject> spawnedCars = new();
     private List<Transform> spawnPoints = new();
+    private NetworkVariable<List<ulong>> spawnedCars = new NetworkVariable<List<ulong>>(
+        new List<ulong>(),
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server);
 
     private void Awake()
     {
-        if (Instance == null)
-            Instance = this;
+        if (Instance == null) Instance = this;
         else Destroy(gameObject);
     }
 
@@ -55,7 +57,7 @@ public class CarSpawner : NetworkBehaviour
         if (!canSpawn || !IsServer) return;
 
         spawnTimer += Time.deltaTime;
-        if (spawnTimer >= spawnInterval && spawnedCars.Count < GetMaxCars())
+        if (spawnTimer >= spawnInterval && spawnedCars.Value.Count < GetMaxCars())
         {
             spawnTimer = 0f;
             SpawnCarServer();
@@ -67,7 +69,7 @@ public class CarSpawner : NetworkBehaviour
         if (!IsServer) return;
         canSpawn = true;
     }
-    //dont combine need to be called via events from btns
+    //dont combine need to be called via events from buttons
     public void TrunOffCarSpawning()
     {
         if (!IsServer) return;
@@ -80,7 +82,8 @@ public class CarSpawner : NetworkBehaviour
         GameObject go = Instantiate(carPrefab, sp.position, sp.rotation);
         NetworkObject netObj = go.GetComponent<NetworkObject>();
         netObj.Spawn(true);
-        spawnedCars.Add(netObj);
+
+        spawnedCars.Value.Add(netObj.NetworkObjectId);
     }
 
     public void DespawnCar(NetworkObject car)
@@ -88,33 +91,41 @@ public class CarSpawner : NetworkBehaviour
         if (car == null) return;
         if (!IsServer) return;
 
-        if (spawnedCars.Contains(car))
+        if (spawnedCars.Value.Contains(car.NetworkObjectId))
         {
             car.Despawn(true);
-            spawnedCars.Remove(car);
+            spawnedCars.Value.Remove(car.NetworkObjectId);
         }
     }
 
-
     [ServerRpc(RequireOwnership = false)]
-    public void DespawnCarServerRpc(int id)
+    public void DespawnCarServerRpc(ulong netObjId)
     {
-        if (!spawnedCars.Contains(spawnedCars[id]))
+        if (!spawnedCars.Value.Contains(netObjId))
         {
             Debug.Log("failed");
             return;
         }
 
-        spawnedCars[id].Despawn(true);
-        spawnedCars.RemoveAt(id);
+        if (NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(netObjId, out NetworkObject car))
+        {
+            car.Despawn(true);
+            spawnedCars.Value.Remove(netObjId);
+        }
+        else
+        {
+            Debug.Log("car with ID " + netObjId + " not found");
+        }
     }
 
-    public int getCarId()
+    public ulong GetCarId(GameObject obj)
     {
-        if (!IsServer) 
-    }
+        NetworkObject netObj = obj.GetComponent<NetworkObject>();
 
-    private int getCarIdServerRpc
+        if (spawnedCars.Value.Contains(netObj.NetworkObjectId))
+            return netObj.NetworkObjectId;
+        else return 0;
+    }
 
     private int GetMaxCars()
     {

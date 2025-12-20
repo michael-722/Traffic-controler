@@ -5,6 +5,8 @@ public class CarDespawnTrigger : MonoBehaviour
 {
     private void OnTriggerEnter(Collider other)
     {
+        if (other == null) return;
+
         if (other.CompareTag("Car"))
         {
             NetworkObject carNetworkObject = other.gameObject.GetComponent<NetworkObject>();
@@ -23,8 +25,8 @@ public class CarDespawnTrigger : MonoBehaviour
             //scoring
             if (PlayerScoreManager.Instance != null && NetworkManager.Singleton != null)
             {
-                ulong localPlayerId = NetworkManager.Singleton.LocalClientId;
-                PlayerScoreManager.Instance.increaseScoreServerRpc(localPlayerId, 1);
+                ulong localPlayerId = NetworkManager.Singleton.LocalClientId;//triggers on server need to get player area collision happened in for id 
+                PlayerScoreManager.Instance.IncreaseScoreServerRpc(localPlayerId, 1);
             }
             else
             {

@@ -62,6 +62,9 @@ public class PlayerSpawner : NetworkBehaviour
         if (!IsServer) return;
         HandlePlayerDisconnected(clientId);
     }
+    #endregion
+
+    #region PLAYER SPAWNING
     private void SpawnPlayer(ulong clientId)
     {
         //check quad map for available quads
@@ -361,7 +364,7 @@ public class PlayerSpawner : NetworkBehaviour
         return null;
     }
 
-    private int GetQuadrantFromPosition(Vector3 position)
+    public int GetQuadrantFromPosition(Vector3 position)
     {
         Vector3 relativePosition = position - centerPoint;
 
@@ -386,6 +389,18 @@ public class PlayerSpawner : NetworkBehaviour
             return playerQuadrantMap[clientId];
         }
         return -1;
+    }
+
+    public ulong GetPlayerInQuadrant(int quadrant)
+    {
+        foreach (var entry in playerQuadrantMap)
+        {
+            if (entry.Value == quadrant)
+            {
+                return entry.Key;
+            }
+        }
+        return 0;
     }
     #endregion
 }

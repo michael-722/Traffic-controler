@@ -15,7 +15,7 @@ public class PlayerScoreManager : NetworkBehaviour
     }
 
     [ServerRpc(RequireOwnership = false)]
-    public void increaseScoreServerRpc(ulong clientId, int amount)
+    public void IncreaseScoreServerRpc(ulong clientId, int amount)
     {
         //Debug.Log($"increase score for client {clientId} by {amount}");
 
@@ -23,6 +23,18 @@ public class PlayerScoreManager : NetworkBehaviour
         PlayerScore playerScore = FindPlayerScoreForClient(clientId);
         if (playerScore != null)
             playerScore.addScore(amount);
+        else
+            Debug.LogError($"playerscore for client {clientId} not found");
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    public void DecreaseScoreServerRpc(ulong clientId, int amount)
+    {
+        //Debug.Log($"decreasing score for client {clientId} by {amount}");
+
+        PlayerScore playerScore = FindPlayerScoreForClient(clientId);
+        if (playerScore != null)
+            playerScore.subtractScore(amount);
         else
             Debug.LogError($"playerscore for client {clientId} not found");
     }

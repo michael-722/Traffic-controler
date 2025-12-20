@@ -1,6 +1,5 @@
 using UnityEngine;
 using System.Collections;
-using Unity.Netcode;
 
 public class CarCollisionCheck : MonoBehaviour
 {
@@ -17,9 +16,16 @@ public class CarCollisionCheck : MonoBehaviour
     {
         if (collision.gameObject.tag == "Car")
         {
+            //stop car  movement
             carController.setHasCrashed(true);
-            //subtract score -- need to identify in which player area it happened - player bounds check
-            Despawn();
+
+            //score penalty
+            int quad = PlayerSpawner.instance.GetQuadrantFromPosition(transform.position);
+            ulong onwerId = PlayerSpawner.instance.GetPlayerInQuadrant(quad);
+            PlayerScoreManager.Instance.DecreaseScoreServerRpc(onwerId, 1);
+
+            //despawn
+            StartCoroutine(Despawn());
         }
     }
 
@@ -27,6 +33,9 @@ public class CarCollisionCheck : MonoBehaviour
     {
         yield return new WaitForSecondsRealtime(despawnTimer);
 
-        CarSpawner.Instance.DespawnCarServerRpc();
+        ulong id = CarSpawner.Instance.GetCarId(gameObject);
+        //Debug.Log("despawning car with ID: " + id);
+        
+        CarSpawner.Instance.DespawnCarServerRpc(id);
     }
 }
