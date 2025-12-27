@@ -14,19 +14,24 @@ using UnityEngine;
 
 public class Relay : NetworkBehaviour
 {
+    public static Relay Instance;
+
     public event Action<string> joinCodeCreated;
     public event Action<string> ipAddressFetched;
     public event Action<int> connectedPlayerCountChange;
     public event Action<string> dissconnectMsg;
 
     private UnityTransport transport;
-
     private List<ulong> connectedPlayerIds = new List<ulong>();
 
     private ulong serverID;
 
     private async void Awake()
     {
+        if (Instance == null)
+            Instance = this;
+        else Destroy(gameObject);
+
         DontDestroyOnLoad(gameObject);
 
         //srelay init
@@ -47,6 +52,13 @@ public class Relay : NetworkBehaviour
     {
         NetworkManager.Singleton.OnClientConnectedCallback += Connection;
         NetworkManager.Singleton.OnClientDisconnectCallback += Dissconnection;
+
+        var ui = UIManager.Instance.GetMenuUI();
+
+        joinCodeCreated += ui.DisplayJoinCode;
+        connectedPlayerCountChange += ui.UpdateConnectedPlayerCount;
+        dissconnectMsg += ui.UpdateJoinedWaitingText;
+        ipAddressFetched += ui.DisplayIpAdress;
 
         //NetworkManager.Singleton.OnTransportFailure += ConnectionLost;
 

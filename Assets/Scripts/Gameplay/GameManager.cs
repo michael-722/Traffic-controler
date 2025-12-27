@@ -4,17 +4,24 @@ using UnityEngine;
 
 public class GameManager : NetworkBehaviour
 {
+    [SerializeField] private int targetFrameRate = 60;
+
     public static GameManager Instance;
     public event Action<GameState> OnGameStateChanged;
-
-    [SerializeField] private int requiredJourniesToWin = 40;
-    private int completedJournies = 0;
 
     private NetworkVariable<GameState> state = new(GameState.Lobby);
 
     private void Awake()
     {
-        Instance = this;
+        if (Instance == null)
+            Instance = this;
+        else
+        {
+            Destroy(gameObject);
+            return;
+        }
+
+        Application.targetFrameRate = targetFrameRate;
     }
 
     public override void OnNetworkSpawn()
@@ -36,26 +43,18 @@ public class GameManager : NetworkBehaviour
         state.Value = GameState.Gameplay;
     }
 
-    public void CompleteJourney()
+    public GameState GetState() => state.Value;
+
+    public void SetState(GameState newState)
     {
         if (!IsServer)
         {
-            Debug.LogWarning("only server can complete journies");
+            Debug.LogWarning("only server can set game state");
             return;
         }
 
-        completedJournies++;
-        if (completedJournies >= requiredJourniesToWin)
-        {
-            state.Value = GameState.PostGame;
-
-            //stop car movement - idk if this is wanted behaviour - need to test and see
-            CarController[] cars = FindObjectsByType<CarController>(sortMode: FindObjectsSortMode.None);
-            foreach (CarController car in cars) car.setHasCrashed(true);
-        }
+        state.Value = newState;
     }
-
-    public GameState GetState() => state.Value;
 }
 
 public enum GameState

@@ -45,13 +45,6 @@ public class CarSpawner : NetworkBehaviour
         else TrunOffCarSpawning();
     }
 
-    private void RescanSpawnPoints()
-    {
-        spawnPoints.Clear();
-        GameObject[] taggedObjs = GameObject.FindGameObjectsWithTag(spawnTag);
-        foreach (GameObject obj in taggedObjs) { spawnPoints.Add(obj.transform); }
-    }
-
     private void Update()
     {
         if (!canSpawn || !IsServer) return;
@@ -63,19 +56,6 @@ public class CarSpawner : NetworkBehaviour
             SpawnCar();
         }
     }
-
-    public void TurnOnCarSpawning()
-    {
-        if (!IsServer) return;
-        canSpawn = true;
-    }
-    //dont combine need to be called via events from buttons
-    public void TrunOffCarSpawning()
-    {
-        if (!IsServer) return;
-        canSpawn = false;
-    }
-
     private void SpawnCar()
     {
         Transform sp = spawnPoints[UnityEngine.Random.Range(0, spawnPoints.Count)];
@@ -116,6 +96,41 @@ public class CarSpawner : NetworkBehaviour
 
     }
 
+    #region HELPERS
+    public void TurnOnCarSpawning()
+    {
+        if (!IsServer) return;
+        canSpawn = true;
+    }
+    //dont combine need to be called via events from buttons
+    public void TrunOffCarSpawning()
+    {
+        if (!IsServer) return;
+        canSpawn = false;
+    }
+    private void RescanSpawnPoints()
+    {
+        spawnPoints.Clear();
+        GameObject[] taggedObjs = GameObject.FindGameObjectsWithTag(spawnTag);
+        foreach (GameObject obj in taggedObjs) { spawnPoints.Add(obj.transform); }
+    }
+
+    public void ClearAllCars()
+    {
+        if (!IsServer) return;
+
+        List<ulong> carsToDespawn = new List<ulong>(spawnedCars.Value);
+        
+        foreach (ulong objId in carsToDespawn)
+        {
+            if (NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(objId, out NetworkObject car))
+            {
+                car.Despawn(true);
+                spawnedCars.Value.Remove(objId);
+            }
+        }
+    }
+
     public ulong GetCarId(GameObject obj)
     {
         NetworkObject netObj = obj.GetComponent<NetworkObject>();
@@ -130,4 +145,5 @@ public class CarSpawner : NetworkBehaviour
         int playerCount = Mathf.Max(1, NetworkManager.Singleton.ConnectedClients.Count);
         return playerCount * carsPerPlayer;
     }
+    #endregion
 }

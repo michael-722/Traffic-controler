@@ -1,32 +1,32 @@
+using UnityEngine;
 using System;
 using TMPro;
-using UnityEngine;
 
-public class UIManager : MonoBehaviour
+public class MainMenuUI : MonoBehaviour
 {
-    public event Action<string> OnStartClientPressed;
-    public event Action OnStartHostPressed;
-    public event Action OnDissconnectPressed;
-    public event Action OnHostDissconnectPressed;
-    public event Action OnStartLANPressed;
-    public event Action<string> OnJoinLANPressed;
-    public event Action OnStartGamePressed;
-
-    [SerializeField] private GameObject hostUI;
-    [SerializeField] private GameObject inGameUI;
-    [SerializeField] private GameObject postGameUI;
+    public static event Action OnStartHostPressed;
+    public static event Action OnStartLANPressed;
+    public static event Action<string> OnJoinLANPressed;
+    public static event Action OnStartGamePressed;
+    public static event Action<string> OnStartClientPressed;
+    public static event Action OnDissconnectPressed;
 
     [SerializeField] private TMP_InputField joinCodeInput;
+    [SerializeField] private TMP_InputField ipInput;
     [SerializeField] private TMP_Text joinCodeDisplay;
+    [SerializeField] private TMP_Text ipDisplay;
     [SerializeField] private TMP_Text playersConnectedCount;
     [SerializeField] private TMP_Text playersConnectedCountLAN;
     [SerializeField] private TMP_Text joinedWaiting;
-    [SerializeField] private TMP_Text ipDisplay;
-    [SerializeField] private TMP_InputField ipInput;
 
     private void Start()
     {
-        ToggleUIBasedOnGameState(GameManager.Instance.GetState());
+        OnStartHostPressed += Relay.Instance.CreateHost;
+        OnStartClientPressed += Relay.Instance.JoinGame;
+        OnDissconnectPressed += Relay.Instance.Dissconect;
+        OnStartLANPressed += Relay.Instance.CreateLAN;
+        OnJoinLANPressed += Relay.Instance.JoinLAN;
+        OnStartGamePressed += () => GameManager.Instance.RequestStartGame();
     }
 
     public void StartHostBtn()
@@ -94,25 +94,5 @@ public class UIManager : MonoBehaviour
     {
         joinedWaiting.text = msg;
         joinedWaiting.color = Color.red;
-    }
-
-    public void ToggleUIBasedOnGameState(GameState state)
-    {
-        hostUI.SetActive(false);
-        inGameUI.SetActive(false);
-        postGameUI.SetActive(false);
-
-        switch (state)
-        {
-            case GameState.Lobby:
-                hostUI.SetActive(true);
-                break;
-            case GameState.Gameplay:
-                inGameUI.SetActive(true);
-                break;
-            case GameState.PostGame:
-                postGameUI.SetActive(true);
-                break;
-        }
     }
 }

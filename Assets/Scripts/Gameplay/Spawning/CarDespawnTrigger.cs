@@ -22,7 +22,7 @@ public class CarDespawnTrigger : MonoBehaviour
             else Debug.LogError("car spawner is null");
 
             if (GameManager.Instance != null)
-                GameManager.Instance.CompleteJourney();
+                WinLoseConditions.Instance.CompleteJourney();
             else  Debug.LogError("game manager is null");
 
             //scoring
