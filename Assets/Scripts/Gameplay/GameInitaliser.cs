@@ -1,5 +1,3 @@
-using System.Collections;
-using Unity.Netcode;
 using UnityEngine;
 
 public class GameInitaliser : MonoBehaviour
@@ -20,7 +18,7 @@ public class GameInitaliser : MonoBehaviour
         ui.OnDissconnectPressed += relay.Dissconect;
         ui.OnStartLANPressed += relay.CreateLAN;
         ui.OnJoinLANPressed += relay.JoinLAN;
-
+        
         ui.OnStartGamePressed += () => GameManager.Instance.RequestStartGame();
         GameManager.Instance.OnGameStateChanged += ui.ToggleUIBasedOnGameState;
 

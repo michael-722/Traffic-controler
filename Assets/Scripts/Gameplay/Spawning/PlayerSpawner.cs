@@ -12,7 +12,6 @@ public class PlayerSpawner : NetworkBehaviour
     [SerializeField] private GameObject playerPrefab;
 
     private Vector3 centerPoint;
-    private int nextSpawnIndex = 0;
 
     private Dictionary<ulong, int> playerQuadrantMap = new Dictionary<ulong, int>();
     private List<ulong> spawnedPlayers = new List<ulong>();

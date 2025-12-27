@@ -60,7 +60,7 @@ public class CarSpawner : NetworkBehaviour
         if (spawnTimer >= spawnInterval && spawnedCars.Value.Count < GetMaxCars())
         {
             spawnTimer = 0f;
-            SpawnCarServer();
+            SpawnCar();
         }
     }
 
@@ -76,7 +76,7 @@ public class CarSpawner : NetworkBehaviour
         canSpawn = false;
     }
 
-    private void SpawnCarServer()
+    private void SpawnCar()
     {
         Transform sp = spawnPoints[UnityEngine.Random.Range(0, spawnPoints.Count)];
         GameObject go = Instantiate(carPrefab, sp.position, sp.rotation);
@@ -112,10 +112,8 @@ public class CarSpawner : NetworkBehaviour
             car.Despawn(true);
             spawnedCars.Value.Remove(netObjId);
         }
-        else
-        {
-            Debug.Log("car with ID " + netObjId + " not found");
-        }
+        else Debug.Log("car with ID " + netObjId + " not found");
+
     }
 
     public ulong GetCarId(GameObject obj)

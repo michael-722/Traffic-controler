@@ -169,48 +169,6 @@ public class CarController : NetworkBehaviour
         StartCoroutine(HandleTrafficLight());
     }
 
-    private void DetermineNextDirection()
-    {
-        if (directionChosen) return;//already chosen dir
-        directionChosen = true;
-
-        List<JunctionDirection> validDirs = new List<JunctionDirection>(currentJunction.junctionMap.Keys);
-        validDirs.Remove(entryDirection);
-
-        if (IsServer)
-        {
-            JunctionDirection newDir = validDirs[Random.Range(0, validDirs.Count)];
-            chosenDirection.Value = newDir;
-        }
-
-        JunctionDirection selectedDir = chosenDirection.Value;
-
-        int turnAngle = (int)GetTurnAngle(entryDirection, selectedDir);
-        switch (turnAngle)
-        {
-            case 90:
-                //right indicator
-                leftBlinkers.setBlinkers(false);
-                rightBlinkers.setBlinkers(true);
-                break;
-            case -90:
-                //left indicator
-                leftBlinkers.setBlinkers(true);
-                rightBlinkers.setBlinkers(false);
-                break;
-            case 0:
-                //no indicator
-                leftBlinkers.setBlinkers(false);
-                rightBlinkers.setBlinkers(false);
-                break;
-            default:
-                //no indicator
-                leftBlinkers.setBlinkers(false);
-                rightBlinkers.setBlinkers(false);
-                break;
-        }
-    }
-
     private IEnumerator HandleTrafficLight()
     {
         waitingAtLight = true;
@@ -218,6 +176,7 @@ public class CarController : NetworkBehaviour
         //wait at light
         while (waitingAtLight)
         {
+            if (hasCrashed) break;
             TrafficLightState lightState = currentLight.GetCurrentState();
 
             //wait when red/yellow
@@ -318,6 +277,47 @@ public class CarController : NetworkBehaviour
         isMoving = false;
     }
 
+    private void DetermineNextDirection()
+    {
+        if (directionChosen) return;//already chosen dir
+        directionChosen = true;
+
+        List<JunctionDirection> validDirs = new List<JunctionDirection>(currentJunction.junctionMap.Keys);
+        validDirs.Remove(entryDirection);
+
+        if (IsServer)
+        {
+            JunctionDirection newDir = validDirs[Random.Range(0, validDirs.Count)];
+            chosenDirection.Value = newDir;
+        }
+
+        JunctionDirection selectedDir = chosenDirection.Value;
+
+        int turnAngle = (int)GetTurnAngle(entryDirection, selectedDir);
+        switch (turnAngle)
+        {
+            case 90:
+                //right indicator
+                leftBlinkers.setBlinkers(false);
+                rightBlinkers.setBlinkers(true);
+                break;
+            case -90:
+                //left indicator
+                leftBlinkers.setBlinkers(true);
+                rightBlinkers.setBlinkers(false);
+                break;
+            case 0:
+                //no indicator
+                leftBlinkers.setBlinkers(false);
+                rightBlinkers.setBlinkers(false);
+                break;
+            default:
+                //no indicator
+                leftBlinkers.setBlinkers(false);
+                rightBlinkers.setBlinkers(false);
+                break;
+        }
+    }
     private float GetTurnDistance(JunctionDirection entryDir, JunctionDirection newDir)
     {
         //Debug.Log($"{name} turn from {entryDir} to {newDir}");  

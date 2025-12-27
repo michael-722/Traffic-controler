@@ -18,9 +18,12 @@ public class CarDespawnTrigger : MonoBehaviour
 
             //despawn via spawner
             if (CarSpawner.Instance != null)
-            {
                 CarSpawner.Instance.DespawnCar(carNetworkObject);
-            }
+            else Debug.LogError("car spawner is null");
+
+            if (GameManager.Instance != null)
+                GameManager.Instance.CompleteJourney();
+            else  Debug.LogError("game manager is null");
 
             //scoring
             if (PlayerScoreManager.Instance != null && NetworkManager.Singleton != null)
@@ -28,10 +31,7 @@ public class CarDespawnTrigger : MonoBehaviour
                 ulong localPlayerId = NetworkManager.Singleton.LocalClientId;//triggers on server need to get player area collision happened in for id 
                 PlayerScoreManager.Instance.IncreaseScoreServerRpc(localPlayerId, 1);
             }
-            else
-            {
-                Debug.LogError("player score manager or net manager is null");
-            }
+            else Debug.LogError("player score manager or net manager is null");
         }
     }
 }

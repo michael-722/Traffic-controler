@@ -23,7 +23,11 @@ public class UIManager : MonoBehaviour
     [SerializeField] private TMP_Text joinedWaiting;
     [SerializeField] private TMP_Text ipDisplay;
     [SerializeField] private TMP_InputField ipInput;
-    public bool hostUIActive = false;
+
+    private void Start()
+    {
+        ToggleUIBasedOnGameState(GameManager.Instance.GetState());
+    }
 
     public void StartHostBtn()
     {
@@ -101,21 +105,12 @@ public class UIManager : MonoBehaviour
         switch (state)
         {
             case GameState.Lobby:
-                hostUIActive = true;
                 hostUI.SetActive(true);
-                inGameUI.SetActive(false);
-                postGameUI.SetActive(false);
                 break;
             case GameState.Gameplay:
-                hostUIActive = false;
-                hostUI.SetActive(false);
                 inGameUI.SetActive(true);
-                postGameUI.SetActive(false);
                 break;
             case GameState.PostGame:
-                hostUIActive = false;
-                hostUI.SetActive(false);
-                inGameUI.SetActive(false);
                 postGameUI.SetActive(true);
                 break;
         }
