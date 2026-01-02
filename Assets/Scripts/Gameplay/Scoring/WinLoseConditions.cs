@@ -1,5 +1,8 @@
 using Unity.Netcode;
 using UnityEngine;
+using TMPro;
+using UnityEngine.UI;
+using System;
 
 public class WinLoseConditions : MonoBehaviour
 {
@@ -8,16 +11,23 @@ public class WinLoseConditions : MonoBehaviour
     [SerializeField] private int timeToComplete = 120;//sec
     [SerializeField] private int requiredJourniesToWin = 40;
 
+    [SerializeField] private TMP_Text JourniesLeftTxt;
+    [SerializeField] private Image timeLeftImg;
+
     private int completedJournies = 0;
 
     private float tickTimer = 0f;
     private bool gameEnded = false;
+
+    private int startTime;
 
     private void Start()
     {
         if (Instance == null)
             Instance = this;
         else Destroy(gameObject);
+
+        startTime = timeToComplete;
     }
 
     private void Update()
@@ -29,11 +39,18 @@ public class WinLoseConditions : MonoBehaviour
         while (tickTimer >= 1f && !gameEnded)
         {
             tickTimer -= 1f;
-            timeToComplete = Mathf.Max(0, timeToComplete - 1);
+            timeToComplete -= 1;
 
             if (timeToComplete <= 0)
                 EndGame();
+            else UpdateUI();
         }
+    }
+
+    private void UpdateUI()
+    {
+        JourniesLeftTxt.text = $"Journies Left: {requiredJourniesToWin - completedJournies}";
+        timeLeftImg.fillAmount = (float)timeToComplete / startTime;
     }
 
     public void CompleteJourney()

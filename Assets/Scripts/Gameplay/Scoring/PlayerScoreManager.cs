@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
@@ -10,16 +11,12 @@ public class PlayerScoreManager : NetworkBehaviour
     {
         if (Instance == null)
             Instance = this;
-        else if (Instance != this)
-            Destroy(gameObject);
+        else Destroy(gameObject);
     }
 
     [ServerRpc(RequireOwnership = false)]
     public void IncreaseScoreServerRpc(ulong clientId, int amount)
     {
-        //Debug.Log($"increase score for client {clientId} by {amount}");
-
-        //find player score for client id
         PlayerScore playerScore = FindPlayerScoreForClient(clientId);
         if (playerScore != null)
             playerScore.addScore(amount);
@@ -30,8 +27,6 @@ public class PlayerScoreManager : NetworkBehaviour
     [ServerRpc(RequireOwnership = false)]
     public void DecreaseScoreServerRpc(ulong clientId, int amount)
     {
-        //Debug.Log($"decreasing score for client {clientId} by {amount}");
-
         PlayerScore playerScore = FindPlayerScoreForClient(clientId);
         if (playerScore != null)
             playerScore.subtractScore(amount);
@@ -43,13 +38,11 @@ public class PlayerScoreManager : NetworkBehaviour
     {
         PlayerScore[] allPlayerScores = FindObjectsByType<PlayerScore>(FindObjectsInactive.Include, FindObjectsSortMode.InstanceID);
 
-        //itterate through all scores to find client id match
         foreach (PlayerScore playerScore in allPlayerScores)
         {
             if (playerScore != null)
             {
                 NetworkObject networkObject = playerScore.GetComponent<NetworkObject>();
-
                 if (networkObject != null && networkObject.IsSpawned && networkObject.OwnerClientId == clientId)
                     return playerScore;
             }
@@ -60,10 +53,7 @@ public class PlayerScoreManager : NetworkBehaviour
     public int getPlayerScore(ulong clientId)
     {
         PlayerScore playerScore = FindPlayerScoreForClient(clientId);
-        if (playerScore != null)
-        {
-            return playerScore.GetScore();
-        }
+        if (playerScore != null) return playerScore.GetScore();
         return 0;
     }
 
@@ -72,7 +62,6 @@ public class PlayerScoreManager : NetworkBehaviour
         Dictionary<ulong, int> scores = new Dictionary<ulong, int>();
         PlayerScore[] allPlayerScores = FindObjectsByType<PlayerScore>(FindObjectsSortMode.InstanceID);
 
-        //rerun all players and scores in dict
         foreach (PlayerScore playerScore in allPlayerScores)
         {
             if (playerScore != null)
@@ -80,20 +69,35 @@ public class PlayerScoreManager : NetworkBehaviour
                 NetworkObject networkObject = playerScore.GetComponent<NetworkObject>();
                 if (networkObject != null)
                 {
-                    ulong ownerId = networkObject.OwnerClientId;
-                    scores[ownerId] = playerScore.GetScore();
+                    scores[networkObject.OwnerClientId] = playerScore.GetScore();
                 }
             }
         }
         return scores;
     }
 
+    public Dictionary<ulong, string> GetAllPlayerUsernames()
+    {
+        Dictionary<ulong, string> usernames = new Dictionary<ulong, string>();
+        PlayerScore[] allPlayerScores = FindObjectsByType<PlayerScore>(FindObjectsSortMode.InstanceID);
+
+        foreach (PlayerScore playerScore in allPlayerScores)
+        {
+            if (playerScore != null)
+            {
+                NetworkObject netObj = playerScore.GetComponent<NetworkObject>();
+                if (netObj != null)
+                    usernames[netObj.OwnerClientId] = playerScore.GetUsername();
+            }
+        }
+        return usernames;
+    }
+
     public int GetLocalPlayerScore()
     {
         if (NetworkManager.Singleton != null)
         {
-            ulong localClientId = NetworkManager.Singleton.LocalClientId;
-            return getPlayerScore(localClientId);
+            return getPlayerScore(NetworkManager.Singleton.LocalClientId);
         }
         return 0;
     }

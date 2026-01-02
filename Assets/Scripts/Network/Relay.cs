@@ -225,4 +225,9 @@ public class Relay : NetworkBehaviour
         IPAddress ipAddr;
         return IPAddress.TryParse(ip, out ipAddr);
     }
+
+    public void setUserName(string name)
+    {
+        
+    }
 }

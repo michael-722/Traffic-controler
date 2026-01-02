@@ -1,10 +1,13 @@
 using System;
 using Unity.Netcode;
 using UnityEngine;
+using Unity.Collections;
 
 public class PlayerScore : NetworkBehaviour
 {
     public NetworkVariable<int> Score = new NetworkVariable<int>(0);
+    //string cant be used - dynamic size allocation issue
+    public NetworkVariable<FixedString32Bytes> PlayerName = new NetworkVariable<FixedString32Bytes>("");
 
     public static event Action<int> OnAnyScoreChanged;
 
@@ -13,10 +16,29 @@ public class PlayerScore : NetworkBehaviour
         Score.OnValueChanged += OnScoreChanged;
     }
 
+    public override void OnNetworkSpawn()
+    {
+        if (IsOwner) 
+            SetUsernameServerRpc(Username.SavedUsername);
+
+        base.OnNetworkSpawn();
+    }
+
+    [ServerRpc]
+    public void SetUsernameServerRpc(string newUsername)
+    {
+        PlayerName.Value = newUsername;
+    }
+
     private void OnScoreChanged(int oldValue, int newValue)
     {
         //Debug.Log($"score changed from {oldValue} to {newValue} for client {NetworkObject.OwnerClientId}");
         OnAnyScoreChanged?.Invoke(newValue);
+    }
+
+    public string GetUsername()
+    {
+        return PlayerName.Value.ToString();
     }
 
     public int GetScore()
@@ -30,7 +52,7 @@ public class PlayerScore : NetworkBehaviour
             Score.Value += amount;
     }
 
-    //-- collisions
+    //--collisions
     public void subtractScore(int amount)
     {
         if (IsServer)

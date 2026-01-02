@@ -1,5 +1,4 @@
 using System.Text;
-using Unity.Netcode;
 using UnityEngine;
 using TMPro;
 
@@ -22,27 +21,24 @@ public class ScoreDisplay : MonoBehaviour
 
     private void UpdateScoreDisplay()
     {
-        if (scoreText == null)
-            return;
-        
-        if (PlayerScoreManager.Instance == null)
+        if (scoreText == null || PlayerScoreManager.Instance == null)
             return;
 
         if (showAllPlayers)
         {
-            //store player scores
             StringBuilder sb = new StringBuilder();
-            var allScores = PlayerScoreManager.Instance.GetAllPlayerScores();
+            var scores = PlayerScoreManager.Instance.GetAllPlayerScores();
+            var usernames = PlayerScoreManager.Instance.GetAllPlayerUsernames();
 
-            if (allScores.Count == 0)
-                return;
-            else
+            if (scores.Count == 0) return;
+
+            foreach (var player in scores)
             {
-                foreach (var player in allScores)
-                {
-                    string playerName = $"Player {player.Key}";
-                    sb.AppendLine($"{playerName}: {player.Value}");
-                }
+                ulong playerId = player.Key;
+                int score = player.Value;
+                string playerName = usernames.ContainsKey(playerId) ? usernames[playerId] : $"Player {playerId}";
+
+                sb.AppendLine($"{playerName}: {score}");
             }
 
             scoreText.text = sb.ToString();

@@ -28,7 +28,8 @@ public class CarDespawnTrigger : MonoBehaviour
             //scoring
             if (PlayerScoreManager.Instance != null && NetworkManager.Singleton != null)
             {
-                ulong localPlayerId = NetworkManager.Singleton.LocalClientId;//triggers on server need to get player area collision happened in for id 
+                //ulong localPlayerId = NetworkManager.Singleton.LocalClientId;//triggers on server need to get player area collision happened in for id 
+                ulong localPlayerId = GetComponentInParent<NetworkObject>().OwnerClientId;
                 PlayerScoreManager.Instance.IncreaseScoreServerRpc(localPlayerId, 1);
             }
             else Debug.LogError("player score manager or net manager is null");
