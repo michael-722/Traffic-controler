@@ -7,7 +7,6 @@ public class GameInitaliser : MonoBehaviour
 
     private void Start()
     {
-        
         SetUpListener();
     }
 

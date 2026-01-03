@@ -315,7 +315,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cf4a5a6ab626ed34b9b2befa3ed09765, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  despawnTimer: 0.5
+  despawnTimer: 2
+  crashFX: {fileID: 8297482405673028232, guid: 3705bb7305410b344bdc787b55f4a999, type: 3}
 --- !u!114 &3518678936446724456
 MonoBehaviour:
   m_ObjectHideFlags: 0

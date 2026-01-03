@@ -397,5 +397,7 @@ public class CarController : NetworkBehaviour
     public void setHasCrashed(bool state)
     {
         hasCrashed = state;
+        rb.angularVelocity = Vector3.zero;
+        rb.linearVelocity = Vector3.zero;
     }
 }
