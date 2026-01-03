@@ -95,4 +95,13 @@ public class MainMenuUI : MonoBehaviour
         joinedWaiting.text = msg;
         joinedWaiting.color = Color.red;
     }
+
+    public void ExitBtn()
+    {
+        #if UNITY_EDITOR
+            UnityEditor.EditorApplication.isPlaying = false;
+        #else
+            Application.Quit();
+        #endif
+    }
 }
