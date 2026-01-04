@@ -47,10 +47,13 @@ public class CarController : NetworkBehaviour
         carLength = GetCarLenght();
         ROAD_WIDTH = 14f;
 
-        //only have enabled if roads need re calarating
+        //=====================================================================
+        //only have enabled if roads need re calabrating
         //road in x dir
+
         //ROAD_WIDTH = GetRoadWidth(roadTransform);
         //Debug.Log($"{name} car width: {carWidth} road width: {roadWidth}");
+        //=====================================================================
 
         leftBlinkers.setBlinkers(false);
         rightBlinkers.setBlinkers(false);
@@ -129,12 +132,13 @@ public class CarController : NetworkBehaviour
         entryDirection = GetDirectionFromTrigger(trigger.name);
         isQueued = trigger.name.Contains("(Clone)");
 
-        //find traffic light
+        
         Transform lightsParent = trigger.transform.parent.parent;//get junction obj
         TrafficLightController[] lights = lightsParent.GetComponentsInChildren<TrafficLightController>();
 
         currentLight = null;
 
+        //find entry dir light
         foreach (TrafficLightController light in lights)
         {
             Vector3 lightForward = light.transform.forward;
@@ -233,14 +237,19 @@ public class CarController : NetworkBehaviour
         JunctionDirection targetDir = chosenDirection.Value;
 
         //Debug.Log($"{name} entryDir={entryDirection} chosen={chosenDirection.Value} targetDir={targetDir}");
+
+        //move forward to turn point
         float turnDist = GetTurnDistance(entryDirection, targetDir);
         yield return StartCoroutine(MoveForward(turnDist, driveSpeed));
 
+        //turn setup
         float turnAngle = GetTurnAngle(entryDirection, targetDir);
         Quaternion targetRot = Quaternion.Euler(0f, transform.eulerAngles.y + turnAngle, 0f);
 
+        //update entry dir
         entryDirection = targetDir;
 
+        //turning
         while (Quaternion.Angle(transform.rotation, targetRot) > 1f)
         {
             transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, turnSpeed * Time.deltaTime);
@@ -253,7 +262,10 @@ public class CarController : NetworkBehaviour
         euler.y = Mathf.Round(euler.y / 90f) * 90f;
         transform.eulerAngles = euler;
         rb.MoveRotation(Quaternion.Euler(euler));
-
+        
+        //reset states
+        rightBlinkers.setBlinkers(false);
+        leftBlinkers.setBlinkers(false);
         directionChosen = false;
         isMoving = false;
     }
@@ -265,6 +277,7 @@ public class CarController : NetworkBehaviour
         Vector3 startPosition = rb.position;
         Vector3 targetPosition = startPosition + transform.forward * distance;
 
+        //move forward
         while (Vector3.Distance(rb.position, targetPosition) > 0.05f)
         {
             Vector3 newPosition = Vector3.MoveTowards(rb.position, targetPosition, speed * Time.deltaTime);
@@ -282,9 +295,11 @@ public class CarController : NetworkBehaviour
         if (directionChosen) return;//already chosen dir
         directionChosen = true;
 
+        //vaild dirs
         List<JunctionDirection> validDirs = new List<JunctionDirection>(currentJunction.junctionMap.Keys);
         validDirs.Remove(entryDirection);
 
+        //choose random dir
         if (IsServer)
         {
             JunctionDirection newDir = validDirs[Random.Range(0, validDirs.Count)];
@@ -293,40 +308,34 @@ public class CarController : NetworkBehaviour
 
         JunctionDirection selectedDir = chosenDirection.Value;
 
-        int turnAngle = (int)GetTurnAngle(entryDirection, selectedDir);
-        switch (turnAngle)
+        //set blinkers
+        float turnAngle = GetTurnAngle(entryDirection, chosenDirection.Value);
+        if (turnAngle == -90f)//right
         {
-            case 90:
-                //right indicator
-                leftBlinkers.setBlinkers(false);
-                rightBlinkers.setBlinkers(true);
-                break;
-            case -90:
-                //left indicator
-                leftBlinkers.setBlinkers(true);
-                rightBlinkers.setBlinkers(false);
-                break;
-            case 0:
-                //no indicator
-                leftBlinkers.setBlinkers(false);
-                rightBlinkers.setBlinkers(false);
-                break;
-            default:
-                //no indicator
-                leftBlinkers.setBlinkers(false);
-                rightBlinkers.setBlinkers(false);
-                break;
+            leftBlinkers.setBlinkers(false);
+            rightBlinkers.setBlinkers(true);
+        }
+        else if (turnAngle == 90f)//left
+        {
+            leftBlinkers.setBlinkers(true);
+            rightBlinkers.setBlinkers(false);
+        }
+        else//straight
+        {
+            leftBlinkers.setBlinkers(false);
+            rightBlinkers.setBlinkers(false);
         }
     }
+
     private float GetTurnDistance(JunctionDirection entryDir, JunctionDirection newDir)
     {
         //Debug.Log($"{name} turn from {entryDir} to {newDir}");  
         int turnAngle = (int)GetTurnAngle(entryDir, newDir);
 
         //left turn
-        if (turnAngle == -90) return ROAD_WIDTH / 2f - 0.6f;
+        if (turnAngle == -90) return ROAD_WIDTH / 2f;
         //right turn
-        else if (turnAngle == 90) return ROAD_WIDTH - 1f;
+        else if (turnAngle == 90) return ROAD_WIDTH;
         //straight
         else return 0f;
     }
@@ -356,42 +365,26 @@ public class CarController : NetworkBehaviour
         switch (entry)
         {
             case JunctionDirection.Up:
-                switch (target)
-                {
-                    case JunctionDirection.Left: return 90f;
-                    case JunctionDirection.Right: return -90f;
-                    case JunctionDirection.Down: return 0f;
-                }
+                if (target == JunctionDirection.Right) return -90f;//left
+                if (target == JunctionDirection.Left) return 90f;//right
                 break;
 
             case JunctionDirection.Down:
-                switch (target)
-                {
-                    case JunctionDirection.Left: return -90f;
-                    case JunctionDirection.Right: return 90f;
-                    case JunctionDirection.Up: return 0f;
-                }
+                if (target == JunctionDirection.Left) return -90f;//left
+                if (target == JunctionDirection.Right) return 90f;//right
                 break;
 
             case JunctionDirection.Left:
-                switch (target)
-                {
-                    case JunctionDirection.Up: return -90f;
-                    case JunctionDirection.Down: return 90f;
-                    case JunctionDirection.Right: return 0f;
-                }
+                if (target == JunctionDirection.Up) return -90f;//left
+                if (target == JunctionDirection.Down) return 90f;//right
                 break;
 
-            case JunctionDirection.Right:
-                switch (target)
-                {
-                    case JunctionDirection.Up: return 90f;
-                    case JunctionDirection.Down: return -90f;
-                    case JunctionDirection.Left: return 0f;
-                }
+            case JunctionDirection.Right://checked
+                if (target == JunctionDirection.Down) return -90f;//left
+                if (target == JunctionDirection.Up) return 90f;//right
                 break;
         }
-        return 0f;
+        return 0f;//straight
     }
 
     public void setHasCrashed(bool state)

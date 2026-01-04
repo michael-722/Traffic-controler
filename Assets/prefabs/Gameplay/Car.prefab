@@ -150,8 +150,8 @@ GameObject:
   - component: {fileID: 3826603069393619936}
   - component: {fileID: 556658469834598899}
   - component: {fileID: -4091908200861921906}
-  - component: {fileID: 1600968542790892852}
   - component: {fileID: 4857451669809382901}
+  - component: {fileID: 1600968542790892852}
   - component: {fileID: 5149088907410365738}
   m_Layer: 0
   m_Name: Car
@@ -303,20 +303,6 @@ MonoBehaviour:
   AutoObjectParentSync: 1
   SyncOwnerTransformWhenParented: 1
   AllowOwnerToParent: 0
---- !u!114 &1600968542790892852
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2518101569010541112}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cf4a5a6ab626ed34b9b2befa3ed09765, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  despawnTimer: 2
-  crashFX: {fileID: 8297482405673028232, guid: 3705bb7305410b344bdc787b55f4a999, type: 3}
 --- !u!114 &4857451669809382901
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -363,6 +349,20 @@ MonoBehaviour:
   SwitchTransformSpaceWhenParented: 0
   Interpolate: 1
   SlerpPosition: 0
+--- !u!114 &1600968542790892852
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2518101569010541112}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cf4a5a6ab626ed34b9b2befa3ed09765, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  despawnTimer: 2
+  crashFX: {fileID: 8297482405673028232, guid: 3705bb7305410b344bdc787b55f4a999, type: 3}
 --- !u!114 &5149088907410365738
 MonoBehaviour:
   m_ObjectHideFlags: 0
