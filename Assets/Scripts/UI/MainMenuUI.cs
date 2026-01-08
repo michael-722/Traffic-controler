@@ -1,6 +1,7 @@
 using UnityEngine;
 using System;
 using TMPro;
+using UnityEngine.UI;
 
 public class MainMenuUI : MonoBehaviour
 {
@@ -18,6 +19,9 @@ public class MainMenuUI : MonoBehaviour
     [SerializeField] private TMP_Text playersConnectedCount;
     [SerializeField] private TMP_Text playersConnectedCountLAN;
     [SerializeField] private TMP_Text joinedWaiting;
+
+    [SerializeField] private Button hostStartGameBtn;
+    [SerializeField] private Button hostBackBtn;
 
     private void Start()
     {
@@ -60,6 +64,10 @@ public class MainMenuUI : MonoBehaviour
     public void DissconnectBtn()
     {
         OnDissconnectPressed?.Invoke();
+
+        hostStartGameBtn.interactable = false;
+        hostBackBtn.interactable = false;
+
         ResetUIText();
     }
 
@@ -77,6 +85,9 @@ public class MainMenuUI : MonoBehaviour
     public void DisplayJoinCode(string code)
     {
         joinCodeDisplay.text = code;
+
+        hostStartGameBtn.interactable = true;
+        hostBackBtn.interactable = true;
     }
 
     public void DisplayIpAdress(string ip)
