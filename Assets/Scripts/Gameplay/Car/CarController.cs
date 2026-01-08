@@ -331,11 +331,12 @@ public class CarController : NetworkBehaviour
     {
         //Debug.Log($"{name} turn from {entryDir} to {newDir}");  
         int turnAngle = (int)GetTurnAngle(entryDir, newDir);
+        float roadOffset = 0.95f;//avoid clipping into curbs
 
         //left turn
-        if (turnAngle == -90) return ROAD_WIDTH / 2f;
+        if (turnAngle == -90) return ROAD_WIDTH / 2f + roadOffset;
         //right turn
-        else if (turnAngle == 90) return ROAD_WIDTH;
+        else if (turnAngle == 90) return ROAD_WIDTH + roadOffset;
         //straight
         else return 0f;
     }
