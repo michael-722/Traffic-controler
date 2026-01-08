@@ -76,12 +76,12 @@ public class MainMenuUI : MonoBehaviour
 
     public void DisplayJoinCode(string code)
     {
-        joinCodeDisplay.text = "Join code:" + code;
+        joinCodeDisplay.text = code;
     }
 
     public void DisplayIpAdress(string ip)
     {
-        ipDisplay.text = "Host IP: " + ip;
+        ipDisplay.text = ip;
     }
 
     public void UpdateConnectedPlayerCount(int num)
@@ -103,5 +103,15 @@ public class MainMenuUI : MonoBehaviour
         #else
             Application.Quit();
         #endif
+    }
+
+    public void CopyCodeBtn()
+    {
+        GUIUtility.systemCopyBuffer = joinCodeDisplay.text;
+    }
+
+    public void CopyIpBtn()
+    {
+        GUIUtility.systemCopyBuffer = ipDisplay.text;
     }
 }
