@@ -38,6 +38,8 @@ public class CarController : NetworkBehaviour
     private bool isQueued = false;
 
     private bool hasCrashed = false;
+
+    private CarWaitUI carWaitUI;
     #endregion
 
     private void Awake()
@@ -54,6 +56,8 @@ public class CarController : NetworkBehaviour
         //ROAD_WIDTH = GetRoadWidth(roadTransform);
         //Debug.Log($"{name} car width: {carWidth} road width: {roadWidth}");
         //=====================================================================
+
+        carWaitUI = gameObject.GetComponent<CarWaitUI>();
 
         leftBlinkers.setBlinkers(false);
         rightBlinkers.setBlinkers(false);
@@ -176,6 +180,7 @@ public class CarController : NetworkBehaviour
     private IEnumerator HandleTrafficLight()
     {
         waitingAtLight = true;
+        carWaitUI.UIstate(true);
 
         //wait at light
         while (waitingAtLight)
@@ -226,6 +231,7 @@ public class CarController : NetworkBehaviour
             yield return null;
         }
 
+        carWaitUI.UIstate(false);
         StartCoroutine(MoveThroughJunction());
     }
 
