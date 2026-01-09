@@ -2,137 +2,145 @@ using System;
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
+using Unity.Netcode;
 
-public class CarWaitUI : MonoBehaviour
+public class CarWaitUI : NetworkBehaviour
 {
     [SerializeField] private Image waitUI;
+    [SerializeField] private GameObject waitTimerRootObj;
+    [SerializeField] private GameObject scoreFX;
+
     [SerializeField] private float countdownTime = 5f;
     [SerializeField] private float penaltyTime = 3f;
-
-    [SerializeField] private GameObject scoreFX;
-    [SerializeField] private float fxTime = 3f;//alpha fade out animation curve in fx graph
-
-    [SerializeField] private GameObject waitTimerRootObj;
+    [SerializeField] private float fxTime = 3f;
     [SerializeField] private float shakeMagnitude = 5f;
     [SerializeField] private float pulseScale = 1.2f;
     [SerializeField] private float duration = 0.5f;
 
-    [SerializeField] private bool isActive = false;
-    private float currentTime;
-    private float penaltyTimer;
     private Coroutine shakeCoroutine;
 
-    private void Start()
+    private NetworkVariable<float> currentTime = new NetworkVariable<float>(0f, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+    private NetworkVariable<float> penaltyTimer = new NetworkVariable<float>(0f, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+    private NetworkVariable<bool> isActive = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+
+    public override void OnNetworkSpawn()
     {
-        waitTimerRootObj.SetActive(isActive);
+        isActive.OnValueChanged += OnActiveChanged;
+        waitTimerRootObj.SetActive(isActive.Value);
     }
 
     private void Update()
     {
-        if (!isActive) return;
+        if (IsServer)
+            UpdateServerLogic();
 
-        if (currentTime < countdownTime)
+        if (isActive.Value)
+            UpdateVisuals(currentTime.Value);
+    }
+
+    private void UpdateServerLogic()
+    {
+        if (!isActive.Value) return;
+
+        if (currentTime.Value < countdownTime)
         {
-            currentTime += Time.deltaTime;
-            updateUI();
+            currentTime.Value += Time.deltaTime;
         }
         else
         {
-            shakePulse();
-            handelPenalty();
+            if (shakeCoroutine == null)
+                ShakePulseClientRpc();
+
+            HandlePenaltyServer();
         }
     }
 
-    private void handelPenalty()
+    private void HandlePenaltyServer()
     {
-        if (penaltyTimer < penaltyTime) penaltyTimer += Time.deltaTime;
+        if (penaltyTimer.Value < penaltyTime)
+        {
+            penaltyTimer.Value += Time.deltaTime;
+        }
         else
         {
-            //spawn sore fx
-            Vector3 offsetFX = new Vector3(0, 2f, 0);
-            GameObject fx = Instantiate(scoreFX, waitTimerRootObj.transform.position, Quaternion.identity);
+            penaltyTimer.Value = 0f;
+            SpawnScoreFXClientRpc();
 
-            fx.transform.position += offsetFX;
-            Destroy(fx, fxTime);
-
-            //score update
+            //score penalty
             int quad = PlayerSpawner.instance.GetQuadrantFromPosition(transform.position);
-            ulong onwerId = PlayerSpawner.instance.GetPlayerInQuadrant(quad);
-            PlayerManager.Instance.DecreaseScoreServerRpc(onwerId, 1);
-
-            penaltyTimer = 0f;
+            ulong ownerId = PlayerSpawner.instance.GetPlayerInQuadrant(quad);
+            PlayerManager.Instance.DecreaseScoreServerRpc(ownerId, 1);
         }
     }
 
-    private void updateUI()
+    private void UpdateVisuals(float time)
     {
-        //calc 126(green) to 0(red) based on time left
-        float t = 1 - (currentTime / countdownTime);
+        float t = Mathf.Clamp01(1 - (time / countdownTime));
+
+        //color fade - red (0) to green (126)
         float h = Mathf.Lerp(0f, 126f / 360f, t);
-
         Color currentColor = waitUI.color;
-        //get hsv to fade color
-        Color.RGBToHSV(currentColor, out float x, out float s, out float v);
+        Color.RGBToHSV(currentColor, out _, out float s, out float v);
+        Color newColor = Color.HSVToRGB(h, s, v);
 
-        //set new color with updated hue
-        currentColor = Color.HSVToRGB(h, s, v);
-        waitUI.color = new Color(currentColor.r, currentColor.g, currentColor.b, 0.85f);
+        waitUI.color = new Color(newColor.r, newColor.g, newColor.b, 0.85f);
         waitUI.fillAmount = t;
     }
 
     public void UIstate(bool state)
     {
-        isActive = state;
+        if (!IsServer) return;
 
-        if (isActive)
+        isActive.Value = state;
+        if (state)
         {
-            waitTimerRootObj.SetActive(true);
-            resetUI();
+            currentTime.Value = 0f;
+            penaltyTimer.Value = 0f;
         }
-        else
+    }
+
+    private void OnActiveChanged(bool prev, bool curr)
+    {
+        waitTimerRootObj.SetActive(curr);
+
+        if (!curr)
         {
+            if (shakeCoroutine != null) StopCoroutine(shakeCoroutine);
             shakeCoroutine = null;
-            waitTimerRootObj.SetActive(false);
         }
     }
 
-    private void resetUI()
+    [ClientRpc]
+    private void ShakePulseClientRpc()
     {
-        currentTime = 0f;
-        penaltyTimer = 0f;
+        if (shakeCoroutine == null)
+            shakeCoroutine = StartCoroutine(ShakePulseCoroutine());
     }
 
-    public void shakePulse()
+    [ClientRpc]
+    private void SpawnScoreFXClientRpc()
     {
-        if (shakeCoroutine != null)
-            return;
-        shakeCoroutine = StartCoroutine(shakePulseCoroutine());
+        Vector3 offsetFX = new Vector3(0, 2f, 0);
+        GameObject fx = Instantiate(scoreFX, waitTimerRootObj.transform.position + offsetFX, Quaternion.identity);
+        Destroy(fx, fxTime);
     }
 
-    private IEnumerator shakePulseCoroutine()
+    private IEnumerator ShakePulseCoroutine()
     {
-        waitUI.fillAmount = 1f;
-
-        Color currentColor = waitUI.color;
-        currentColor.a = 1f;
-        waitUI.color = currentColor;
-
         Vector3 originalPos = waitTimerRootObj.transform.localPosition;
         Vector3 originalScale = waitTimerRootObj.transform.localScale;
         float elapsed = 0f;
 
         while (elapsed < duration)
         {
-            float percent = Mathf.Clamp01(elapsed / duration);
-            //shake
+            float percent = elapsed / duration;
             float fade = 1 - percent;
+
             float x = UnityEngine.Random.Range(-1f, 1f) * shakeMagnitude * fade;
             float y = UnityEngine.Random.Range(-1f, 1f) * shakeMagnitude * fade;
-            waitTimerRootObj.transform.localPosition = originalPos + new Vector3(x, y, 0f);
 
-            //pulse
-            float scale = Mathf.Lerp(pulseScale, 1f, percent);
-            waitTimerRootObj.transform.localScale = originalScale * scale;
+            waitTimerRootObj.transform.localPosition = originalPos + new Vector3(x, y, 0f);
+            waitTimerRootObj.transform.localScale = originalScale * Mathf.Lerp(pulseScale, 1f, percent);
 
             elapsed += Time.deltaTime;
             yield return null;
