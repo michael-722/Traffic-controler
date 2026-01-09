@@ -86,7 +86,6 @@ public class MainMenuUI : MonoBehaviour
     {
         joinCodeDisplay.text = code;
 
-        hostStartGameBtn.interactable = true;
         hostBackBtn.interactable = true;
     }
 
@@ -124,5 +123,10 @@ public class MainMenuUI : MonoBehaviour
     public void CopyIpBtn()
     {
         GUIUtility.systemCopyBuffer = ipDisplay.text;
+    }
+
+    public void SetHostStart(bool state)
+    {
+        hostStartGameBtn.interactable = state;
     }
 }

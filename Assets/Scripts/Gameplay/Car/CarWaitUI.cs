@@ -58,7 +58,7 @@ public class CarWaitUI : MonoBehaviour
             //score update
             int quad = PlayerSpawner.instance.GetQuadrantFromPosition(transform.position);
             ulong onwerId = PlayerSpawner.instance.GetPlayerInQuadrant(quad);
-            PlayerScoreManager.Instance.DecreaseScoreServerRpc(onwerId, 1);
+            PlayerManager.Instance.DecreaseScoreServerRpc(onwerId, 1);
 
             penaltyTimer = 0f;
         }

@@ -21,14 +21,14 @@ public class ScoreDisplay : MonoBehaviour
 
     private void UpdateScoreDisplay()
     {
-        if (scoreText == null || PlayerScoreManager.Instance == null)
+        if (scoreText == null || PlayerManager.Instance == null)
             return;
 
         if (showAllPlayers)
         {
             StringBuilder sb = new StringBuilder();
-            var scores = PlayerScoreManager.Instance.GetAllPlayerScores();
-            var usernames = PlayerScoreManager.Instance.GetAllPlayerUsernames();
+            var scores = PlayerManager.Instance.GetAllPlayerScores();
+            var usernames = PlayerManager.Instance.GetAllPlayerUsernames();
 
             if (scores.Count == 0) return;
 
@@ -45,7 +45,7 @@ public class ScoreDisplay : MonoBehaviour
         }
         else
         {
-            int localScore = PlayerScoreManager.Instance.GetLocalPlayerScore();
+            int localScore = PlayerManager.Instance.GetLocalPlayerScore();
             scoreText.text = $"Score: {localScore}";
         }
     }

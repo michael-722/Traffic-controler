@@ -73,7 +73,7 @@ public class CarCollisionCheck : MonoBehaviour
     {
         int quad = PlayerSpawner.instance.GetQuadrantFromPosition(transform.position);
         ulong onwerId = PlayerSpawner.instance.GetPlayerInQuadrant(quad);
-        PlayerScoreManager.Instance.DecreaseScoreServerRpc(onwerId, 1);
+        PlayerManager.Instance.DecreaseScoreServerRpc(onwerId, 1);
     }
 
     private IEnumerator Despawn()

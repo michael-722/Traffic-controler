@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
-public class PlayerScoreManager : NetworkBehaviour
+public class PlayerManager : NetworkBehaviour
 {
-    public static PlayerScoreManager Instance;
+    public static PlayerManager Instance;
 
     private void Awake()
     {
@@ -18,20 +18,18 @@ public class PlayerScoreManager : NetworkBehaviour
     public void IncreaseScoreServerRpc(ulong clientId, int amount)
     {
         PlayerScore playerScore = FindPlayerScoreForClient(clientId);
-        if (playerScore != null)
-            playerScore.addScore(amount);
-        else
-            Debug.LogError($"playerscore for client {clientId} not found");
+
+        if (playerScore != null) playerScore.addScore(amount);
+        else Debug.LogError($"playerscore for client {clientId} not found");
     }
 
     [ServerRpc(RequireOwnership = false)]
     public void DecreaseScoreServerRpc(ulong clientId, int amount)
     {
         PlayerScore playerScore = FindPlayerScoreForClient(clientId);
-        if (playerScore != null)
-            playerScore.subtractScore(amount);
-        else
-            Debug.LogError($"playerscore for client {clientId} not found");
+
+        if (playerScore != null) playerScore.subtractScore(amount);
+        else Debug.LogError($"playerscore for client {clientId} not found");
     }
 
     private PlayerScore FindPlayerScoreForClient(ulong clientId)
@@ -91,6 +89,23 @@ public class PlayerScoreManager : NetworkBehaviour
             }
         }
         return usernames;
+    }
+
+    public Dictionary<ulong, bool> GetAllPlayerReadyStates()
+    {
+        Dictionary<ulong, bool> readyStates = new Dictionary<ulong, bool>();
+        PlayerReadyState[] allPlayerReadyStates = FindObjectsByType<PlayerReadyState>(FindObjectsSortMode.InstanceID);
+
+        foreach (PlayerReadyState playerReadyState in allPlayerReadyStates)
+        {
+            if (playerReadyState != null)
+            {
+                NetworkObject netObj = playerReadyState.GetComponent<NetworkObject>();
+                if (netObj != null)
+                    readyStates[netObj.OwnerClientId] = playerReadyState.IsReady();
+            }
+        }
+        return readyStates;
     }
 
     public int GetLocalPlayerScore()

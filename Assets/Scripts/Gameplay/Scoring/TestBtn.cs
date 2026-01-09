@@ -8,7 +8,7 @@ public class TestBtn : MonoBehaviour
         if (NetworkManager.Singleton != null)
         {
             ulong localId = NetworkManager.Singleton.LocalClientId;
-            PlayerScoreManager.Instance.IncreaseScoreServerRpc(localId, 10);
+            PlayerManager.Instance.IncreaseScoreServerRpc(localId, 10);
         }
     }
 }
