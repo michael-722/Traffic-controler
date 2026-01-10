@@ -103,8 +103,17 @@ public class CarController : NetworkBehaviour
     {
         if (!IsServer && IsSpawned) return;
 
+        if (isMoving || hasCrashed) return;
+
         //check if is junction trigger
         if (!trigger.transform.name.Contains("Trigger")) return;
+
+        //check alignment to see if hitting the side (probably side on collision in junc) 
+        Vector3 triggerForward = trigger.transform.forward;
+        Vector3 carForward = transform.forward;
+        float alignment = Mathf.Abs(Vector3.Dot(triggerForward.normalized, carForward.normalized));
+        if (alignment < 0.9f)
+            return;
 
         currentJunction = trigger.gameObject.GetComponentInParent<JunctionController>();
         if (currentJunction == null)
@@ -276,22 +285,26 @@ public class CarController : NetworkBehaviour
         //turning
         while (Quaternion.Angle(transform.rotation, targetRot) > 1f)
         {
+            if (hasCrashed) break;
             transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, turnSpeed * Time.deltaTime);
             rb.MoveRotation(transform.rotation);
             yield return null;
         }
 
-        //sync fianl
-        Vector3 euler = transform.eulerAngles;
-        euler.y = Mathf.Round(euler.y / 90f) * 90f;
-        transform.eulerAngles = euler;
-        rb.MoveRotation(Quaternion.Euler(euler));
-        
-        //reset states
-        rightBlinkers.setBlinkers(false);
-        leftBlinkers.setBlinkers(false);
-        directionChosen = false;
-        isMoving = false;
+        if (!hasCrashed)
+        {
+            //sync fianl
+            Vector3 euler = transform.eulerAngles;
+            euler.y = Mathf.Round(euler.y / 90f) * 90f;
+            transform.eulerAngles = euler;
+            rb.MoveRotation(Quaternion.Euler(euler));
+
+            //reset states
+            rightBlinkers.setBlinkers(false);
+            leftBlinkers.setBlinkers(false);
+            directionChosen = false;
+            isMoving = false;
+        }
     }
 
     private IEnumerator MoveForward(float distance, float speed)
@@ -304,13 +317,15 @@ public class CarController : NetworkBehaviour
         //move forward
         while (Vector3.Distance(rb.position, targetPosition) > 0.05f)
         {
+            if (hasCrashed) break;
             Vector3 newPosition = Vector3.MoveTowards(rb.position, targetPosition, speed * Time.deltaTime);
             rb.MovePosition(newPosition);
 
             yield return null;
         }
 
-        rb.MovePosition(targetPosition);
+        if (!hasCrashed)
+            rb.MovePosition(targetPosition);
         isMoving = false;
     }
 

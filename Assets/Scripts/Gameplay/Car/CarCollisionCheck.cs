@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections;
 using System;
+using Unity.Netcode;
 
 public class CarCollisionCheck : MonoBehaviour
 {
@@ -75,6 +76,9 @@ public class CarCollisionCheck : MonoBehaviour
 
     private void UpdateScore()
     {
+        if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsConnectedClient)
+            return;
+
         int quad = PlayerSpawner.instance.GetQuadrantFromPosition(transform.position);
         ulong onwerId = PlayerSpawner.instance.GetPlayerInQuadrant(quad);
         PlayerManager.Instance.DecreaseScoreServerRpc(onwerId, 1);
@@ -86,9 +90,14 @@ public class CarCollisionCheck : MonoBehaviour
 
         Destroy(crashFXInstance);
 
-        ulong id = CarSpawner.Instance.GetCarId(gameObject);
-        //Debug.Log("despawning car with ID: " + id);
-        
-        CarSpawner.Instance.DespawnCarServerRpc(id);
+        if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsConnectedClient)
+            Destroy(gameObject);
+        else
+        {
+            ulong id = CarSpawner.Instance.GetCarId(gameObject);
+            //Debug.Log("despawning car with ID: " + id);
+
+            CarSpawner.Instance.DespawnCarServerRpc(id);
+        }
     }
 }

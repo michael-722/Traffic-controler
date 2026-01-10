@@ -32,11 +32,6 @@ public class CameraManager : MonoBehaviour
     {
         HandleMovement();
         HandleZoom();
-        /*if (IsOutsideArea())
-        {
-            //trigger player zone pulsing=================================
-            //need to set up mby with panel and circle img can create circle cut out with transparancy?
-        }*/
     }
 
     void HandleMovement()

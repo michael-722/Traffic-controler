@@ -98,7 +98,7 @@ public class PlayerSpawner : NetworkBehaviour
         GameObject playerInstance = Instantiate(playerPrefab, spawnPoint.position, spawnPoint.rotation);
         playerInstance.GetComponent<NetworkObject>().SpawnAsPlayerObject(clientId, true);
 
-        SetCameraClientRpc(new Vector3(spawnPoint.position.x, 35f, spawnPoint.position.z), clientId);
+        SetCameraClientRpc(new Vector3(spawnPoint.position.x, 80f, spawnPoint.position.z), clientId);
 
         StartCoroutine(EnableSpawnPointsWhenReady(playerInstance, spawnPoint));
     }
@@ -377,7 +377,7 @@ public class PlayerSpawner : NetworkBehaviour
     private void SetCameraClientRpc(Vector3 spawnPosition, ulong clientId)
     {
         if (NetworkManager.Singleton.LocalClientId != clientId) return;
-        Camera.main.transform.position = new Vector3(spawnPosition.x, 35f, spawnPosition.z);
+        Camera.main.transform.position = new Vector3(spawnPosition.x, spawnPosition.y, spawnPosition.z);
         CameraManager.Instance.SetAreaCenter(spawnPosition);
     }
 

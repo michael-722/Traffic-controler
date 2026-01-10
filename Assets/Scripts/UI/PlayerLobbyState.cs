@@ -7,13 +7,14 @@ using UnityEngine.UI;
 
 public class PlayerLobbyState : MonoBehaviour
 {
+    public static event Action<bool> AllPlayersReady;
+
     [SerializeField] private Button readyButton;
     [SerializeField] private TMP_Text playerText;
     [SerializeField] private float updateInterval = 0.5f;
 
     private float lastUpdateTime;
-
-    public static event Action<bool> AllPlayersReady;
+    private bool lastAllReadyState;
 
     private void Start()
     {
@@ -28,14 +29,18 @@ public class PlayerLobbyState : MonoBehaviour
 
     private void Update()
     {
+        if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsConnectedClient)
+        {
+            playerText.text = "";
+            return;
+        }  
+
         if (Time.time - lastUpdateTime > updateInterval)
         {
             UpdatePlayerStates();
             lastUpdateTime = Time.time;
         }
     }
-
-    private bool lastAllReadyState;
 
     private void UpdatePlayerStates()
     {

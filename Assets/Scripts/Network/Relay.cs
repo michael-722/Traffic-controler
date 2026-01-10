@@ -186,10 +186,10 @@ public class Relay : NetworkBehaviour
     [ServerRpc]
     public void DisconnectAllPlayersServerRpc()
     {
-        Debug.Log("dissconnecting all players");
+        //Debug.Log("dissconnecting all players");
         for (int i = connectedPlayerIds.Count - 1; i >= 1; i--)
         {
-            Debug.Log("dissconnecting player id: " + connectedPlayerIds[i]);
+            //Debug.Log("dissconnecting player id: " + connectedPlayerIds[i]);
             ulong playerId = connectedPlayerIds[i];
             NetworkManager.Singleton.DisconnectClient(playerId);
         }
@@ -224,10 +224,5 @@ public class Relay : NetworkBehaviour
     {
         IPAddress ipAddr;
         return IPAddress.TryParse(ip, out ipAddr);
-    }
-
-    public void setUserName(string name)
-    {
-        
     }
 }

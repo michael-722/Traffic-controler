@@ -53,6 +53,8 @@ public class UIManager : MonoBehaviour
         {
             case GameState.Lobby:
                 menuUIObj.SetActive(true);
+                if (TutorialManager.Instance != null)
+                    TutorialManager.Instance.ShowTutorial();
                 break;
             case GameState.Gameplay:
                 inGameUIObj.SetActive(true);
@@ -62,6 +64,7 @@ public class UIManager : MonoBehaviour
                 break;
             case GameState.Tutorial:
                 tutorialUIObj.SetActive(true);
+                Debug.Log("Tutorial UI activated");
                 break;
         }
     }

@@ -36,6 +36,7 @@ public class MainMenuUI : MonoBehaviour
     public void StartHostBtn()
     {
         OnStartHostPressed?.Invoke();
+        TutorialManager.Instance.DespawnTutorialCars();
     }
 
     public void StartLANBtn()
@@ -45,8 +46,8 @@ public class MainMenuUI : MonoBehaviour
 
     public void JoinLANBtn()
     {
-        ResetUIText();
         OnJoinLANPressed?.Invoke(ipInput.text);
+        ResetUIText();
     }
 
     public void StartGameBtn()
@@ -56,9 +57,9 @@ public class MainMenuUI : MonoBehaviour
 
     public void StartClientBtn()
     {
-        ResetUIText();
         OnStartClientPressed?.Invoke(joinCodeInput.text.Trim());
-        //need to wait till connection is set bc rn client is server so runs locally
+        TutorialManager.Instance.HideTutorial();
+        ResetUIText();
     }
 
     public void DissconnectBtn()
@@ -67,6 +68,8 @@ public class MainMenuUI : MonoBehaviour
 
         hostStartGameBtn.interactable = false;
         hostBackBtn.interactable = false;
+
+        TutorialManager.Instance.ShowTutorial();
 
         ResetUIText();
     }
@@ -78,6 +81,8 @@ public class MainMenuUI : MonoBehaviour
         playersConnectedCount.text = "Connected players: 0";
         playersConnectedCountLAN.text = "Connected players: 0";
         joinedWaiting.text = "Waiting for host to start game...";
+        joinCodeInput.text = "";
+        ipInput.text = "";
 
         joinedWaiting.color = Color.white;
     }
@@ -87,6 +92,7 @@ public class MainMenuUI : MonoBehaviour
         joinCodeDisplay.text = code;
 
         hostBackBtn.interactable = true;
+        TutorialManager.Instance.HideTutorial();
     }
 
     public void DisplayIpAdress(string ip)
@@ -104,6 +110,12 @@ public class MainMenuUI : MonoBehaviour
     {
         joinedWaiting.text = msg;
         joinedWaiting.color = Color.red;
+
+        TutorialManager.Instance.ShowTutorial();
+        Camera.main.transform.position = new Vector3(0f, 80f, 0f);
+
+        joinCodeInput.text = "";
+        ipInput.text = "";
     }
 
     public void ExitBtn()

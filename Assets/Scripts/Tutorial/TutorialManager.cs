@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
+using Unity.Netcode;
 using UnityEngine;
 
 public class TutorialManager : MonoBehaviour
@@ -28,24 +29,44 @@ public class TutorialManager : MonoBehaviour
     [SerializeField] private Transform initalCarSpawnPoint;
     [SerializeField] private List<Transform> carSpawnPoints;
 
+    [SerializeField] private GameObject TutorialLayout;
+
     private GameObject activeRing;
+    private List<GameObject> spawnedCars = new List<GameObject>();
+    private bool carSpawnEnabled = false;
+    private Coroutine carSpawnRoutine;
 
     private void Start()
     {
         if (Instance == null) Instance = this;
         else Destroy(gameObject);
+
+        enableCarSpawning();
     }
 
     public void StartTutorial()
     {
         tutorialPanel.SetActive(true);
+        disableCarSpawning();
         StartCoroutine(TutorialRoutine());
     }
 
-    public void StopTutorial()
+    public void DespawnTutorialCars()
     {
+        despawnCars();
+    }
+
+    public void HideTutorial()
+    {
+        TutorialLayout.SetActive(false);
         disableCarSpawning();
-        HideRing();
+        despawnCars();
+    }
+
+    public void ShowTutorial()
+    {
+        TutorialLayout.SetActive(true);
+        enableCarSpawning();
     }
 
     private IEnumerator TutorialRoutine()
@@ -87,17 +108,25 @@ public class TutorialManager : MonoBehaviour
         yield return RunStep("If cars wait too long, they get impatient and you lose points. Press SPACE to continue.", () => Input.GetKeyDown(KeyCode.Space));
 
         //crash penalty
-        yield return RunStep("Two cars colliding will cause a major score penalty! Press SPACE to finish.", () => Input.GetKeyDown(KeyCode.Space));
+        yield return RunStep("Allowing two cars to colliding will result in a score penalty! Press SPACE to continue.", () => Input.GetKeyDown(KeyCode.Space));
 
-        instructionText.text = "Tutorial Complete! You're ready to manage the city.";
-        yield return new WaitForSeconds(3f);
-        tutorialPanel.SetActive(false);
+        //wait for player to exit
+        yield return RunStep("Tutorial Complete! You're ready to manage the city. Press SPACE to leave tutorial", () => Input.GetKeyDown(KeyCode.Space));
+
+        StopTutorial();
     }
 
-    private Coroutine carSpawnRoutine;
+    private void StopTutorial()
+    {
+        disableCarSpawning();
+        HideRing();
+        tutorialPanel.SetActive(false);
+        GameManager.Instance.SetState(GameState.Lobby);
+    }
 
     private void enableCarSpawning()
     {
+        carSpawnEnabled = true;
         if (carSpawnRoutine == null)
         {
             carSpawnRoutine = StartCoroutine(CarSpawnLoop());
@@ -111,16 +140,31 @@ public class TutorialManager : MonoBehaviour
             StopCoroutine(carSpawnRoutine);
             carSpawnRoutine = null;
         }
+        carSpawnEnabled = false;
     }
 
     private IEnumerator CarSpawnLoop()
     {
         float spawnInterval = 7f;
-        while (tutorialPanel.activeSelf)
+        while (carSpawnEnabled)
         {
             int index = UnityEngine.Random.Range(0, carSpawnPoints.Count);
-            Instantiate(carPrefab, carSpawnPoints[index].position, carSpawnPoints[index].rotation);
+            GameObject car = Instantiate(carPrefab, carSpawnPoints[index].position, carSpawnPoints[index].rotation);
+            car.gameObject.GetComponent<NetworkObject>().enabled = false;
+            spawnedCars.Add(car);
             yield return new WaitForSeconds(spawnInterval);
+        }
+    }
+
+    private void despawnCars()
+    {
+        for (int i = spawnedCars.Count - 1; i >= 0; i--)
+        {
+            if (spawnedCars[i] != null)
+            {
+                Destroy(spawnedCars[i]);
+            }
+            spawnedCars.RemoveAt(i);
         }
     }
 
