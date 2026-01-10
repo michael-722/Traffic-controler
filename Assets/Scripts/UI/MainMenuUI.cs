@@ -129,4 +129,10 @@ public class MainMenuUI : MonoBehaviour
     {
         hostStartGameBtn.interactable = state;
     }
+
+    public void StartTutorial()
+    {
+        GameManager.Instance.SetState(GameState.Tutorial);
+        TutorialManager.Instance.StartTutorial();
+    }
 }

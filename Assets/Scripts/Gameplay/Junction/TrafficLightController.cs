@@ -2,6 +2,7 @@ using UnityEngine;
 using System.Collections;
 using UnityEngine.UI;
 using Unity.Netcode;
+using System;
 
 public enum TrafficLightState
 {
@@ -12,6 +13,8 @@ public enum TrafficLightState
 
 public class TrafficLightController : NetworkBehaviour
 {
+    public event Action OnLightChanged;
+
     [SerializeField] private float lightChangeDelay = 0.75f;
     [SerializeField] private float intensity = 30.0f;
 
@@ -55,7 +58,12 @@ public class TrafficLightController : NetworkBehaviour
 
     public void OnTrafficLightClicked()
     {
-        if (!IsOwner || isChanging) return;//only owner can change
+        if (IsSpawned && !IsOwner) return;//only owner can change
+        else
+        {//for single player
+            if (!IsSpawned && !isChanging)
+                StartCoroutine(ChangeColor());
+        }
 
         RequestChangeServerRpc();
     }
@@ -64,7 +72,6 @@ public class TrafficLightController : NetworkBehaviour
     [ServerRpc(RequireOwnership = false)]
     private void RequestChangeServerRpc()
     {
-
         if (!isChanging) StartCoroutine(ChangeColor());
     }
 
@@ -89,7 +96,7 @@ public class TrafficLightController : NetworkBehaviour
 
     private IEnumerator ChangeState(TrafficLightState nextState)
     {
-        if (IsServer) currentState.Value = nextState;
+        if (IsServer || !IsSpawned) currentState.Value = nextState;
 
         yield return new WaitForSeconds(lightChangeDelay);
     }
@@ -98,6 +105,7 @@ public class TrafficLightController : NetworkBehaviour
     private void OnTrafficLightStateChanged(TrafficLightState oldState, TrafficLightState newState)
     {
         UpdateTrafficLightVisual();
+        OnLightChanged?.Invoke();
     }
 
     private void UpdateTrafficLightVisual()

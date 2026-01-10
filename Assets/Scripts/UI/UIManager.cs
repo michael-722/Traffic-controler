@@ -8,6 +8,7 @@ public class UIManager : MonoBehaviour
     [SerializeField] private GameObject menuUIObj;
     [SerializeField] private GameObject inGameUIObj;
     [SerializeField] private GameObject postGameUIObj;
+    [SerializeField] private GameObject tutorialUIObj;
 
     private MainMenuUI menuUI;
     private InGameUI inGameUI;
@@ -46,6 +47,7 @@ public class UIManager : MonoBehaviour
         menuUIObj.SetActive(false);
         inGameUIObj.SetActive(false);
         postGameUIObj.SetActive(false);
+        tutorialUIObj.SetActive(false);
 
         switch (state)
         {
@@ -57,6 +59,9 @@ public class UIManager : MonoBehaviour
                 break;
             case GameState.PostGame:
                 postGameUIObj.SetActive(true);
+                break;
+            case GameState.Tutorial:
+                tutorialUIObj.SetActive(true);
                 break;
         }
     }

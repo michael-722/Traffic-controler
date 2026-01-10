@@ -23,6 +23,12 @@ public class CarWaitUI : NetworkBehaviour
     private NetworkVariable<float> penaltyTimer = new NetworkVariable<float>(0f, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
     private NetworkVariable<bool> isActive = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
+    private void Start()
+    {
+        isActive.OnValueChanged += OnActiveChanged;
+        waitTimerRootObj.SetActive(false);
+    }
+
     public override void OnNetworkSpawn()
     {
         isActive.OnValueChanged += OnActiveChanged;
@@ -31,8 +37,10 @@ public class CarWaitUI : NetworkBehaviour
 
     private void Update()
     {
-        if (IsServer)
-            UpdateServerLogic();
+        if (IsSpawned)
+            if (!IsServer) return;
+
+        UpdateServerLogic();
 
         if (isActive.Value)
             UpdateVisuals(currentTime.Value);
@@ -48,7 +56,9 @@ public class CarWaitUI : NetworkBehaviour
         }
         else
         {
-            if (shakeCoroutine == null)
+            if (!IsSpawned)
+                StartShakeLocal();
+            else
                 ShakePulseClientRpc();
 
             HandlePenaltyServer();
@@ -89,7 +99,8 @@ public class CarWaitUI : NetworkBehaviour
 
     public void UIstate(bool state)
     {
-        if (!IsServer) return;
+        if (IsSpawned)
+            if (!IsServer) return;
 
         isActive.Value = state;
         if (state)
@@ -108,6 +119,12 @@ public class CarWaitUI : NetworkBehaviour
             if (shakeCoroutine != null) StopCoroutine(shakeCoroutine);
             shakeCoroutine = null;
         }
+    }
+
+    private void StartShakeLocal()
+    {
+        if (shakeCoroutine == null)
+            shakeCoroutine = StartCoroutine(ShakePulseCoroutine());
     }
 
     [ClientRpc]

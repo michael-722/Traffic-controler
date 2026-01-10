@@ -101,7 +101,7 @@ public class CarController : NetworkBehaviour
 
     private void OnTriggerEnter(Collider trigger)
     {
-        if (!IsServer) return;
+        if (!IsServer && IsSpawned) return;
 
         //check if is junction trigger
         if (!trigger.transform.name.Contains("Trigger")) return;
@@ -116,7 +116,11 @@ public class CarController : NetworkBehaviour
         if (rearTriggerInstance != null && trigger.gameObject == rearTriggerInstance) return;
          
         Vector3 triggerCenter = trigger.bounds.center;
-        Vector3 carPosition = transform.position;
+        Vector3 carPosition = transform.position;  
+
+        rearTriggerInstance = trigger.gameObject;
+        entryDirection = GetDirectionFromTrigger(trigger.name);
+        isQueued = trigger.name.Contains("(Clone)");
 
         //entry axis
         switch (entryDirection)
@@ -130,13 +134,8 @@ public class CarController : NetworkBehaviour
                 carPosition.z = triggerCenter.z;
                 break;
         }
-        rb.MovePosition(carPosition);    
+        rb.MovePosition(carPosition);
 
-        rearTriggerInstance = trigger.gameObject;
-        entryDirection = GetDirectionFromTrigger(trigger.name);
-        isQueued = trigger.name.Contains("(Clone)");
-
-        
         Transform lightsParent = trigger.transform.parent.parent;//get junction obj
         TrafficLightController[] lights = lightsParent.GetComponentsInChildren<TrafficLightController>();
 
@@ -164,6 +163,25 @@ public class CarController : NetworkBehaviour
                 break;
             }
         }
+
+        //==============
+        NoTrafficLightTurning[] noTrafficLightTurnings = lightsParent.GetComponentsInChildren<NoTrafficLightTurning>();
+
+        foreach (NoTrafficLightTurning turn in noTrafficLightTurnings)
+        {
+            Vector3 turnForward = turn.transform.forward;
+            Vector3 expectedTurnDir = -GetWorldDirection(entryDirection);
+
+            float dot = Vector3.Dot(turnForward.normalized, expectedTurnDir.normalized);
+
+            if (dot > 0.8f)
+            {
+                DetermineNextDirection();
+                StartCoroutine(MoveThroughJunction());
+                return;
+            }
+        }
+        //==============
 
         if (currentLight == null)
         {
@@ -305,8 +323,11 @@ public class CarController : NetworkBehaviour
         List<JunctionDirection> validDirs = new List<JunctionDirection>(currentJunction.junctionMap.Keys);
         validDirs.Remove(entryDirection);
 
+        //Debug.Log(name + " valid dirs at junction: ");
+        //foreach (JunctionDirection dir in validDirs) { Debug.Log(dir); }
+
         //choose random dir
-        if (IsServer)
+        if (IsServer || !IsSpawned)
         {
             JunctionDirection newDir = validDirs[Random.Range(0, validDirs.Count)];
             chosenDirection.Value = newDir;

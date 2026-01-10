@@ -47,13 +47,15 @@ public class GameManager : NetworkBehaviour
 
     public void SetState(GameState newState)
     {
-        if (!IsServer)
+        //only server and offline can set state
+        if (!IsServer && IsSpawned)
         {
             Debug.LogWarning("only server can set game state");
-            return;
+            if (NetworkManager != null) return;
         }
 
         state.Value = newState;
+        OnGameStateChanged?.Invoke(newState);
     }
 }
 
@@ -61,5 +63,6 @@ public enum GameState
 {
     Lobby,
     Gameplay,
-    PostGame
+    PostGame,
+    Tutorial
 }

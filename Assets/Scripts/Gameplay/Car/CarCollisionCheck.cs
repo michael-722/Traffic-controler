@@ -1,9 +1,11 @@
 using UnityEngine;
 using System.Collections;
-using UnityEngine.VFX;
+using System;
 
 public class CarCollisionCheck : MonoBehaviour
 {
+    public static event Action OnCarCrashed;
+
     [SerializeField] private float despawnTimer = 3f;
     [SerializeField] private GameObject crashFX;
 
@@ -30,6 +32,8 @@ public class CarCollisionCheck : MonoBehaviour
 
             //score penalty
             UpdateScore();
+
+            OnCarCrashed?.Invoke();
 
             //despawn
             StartCoroutine(Despawn());

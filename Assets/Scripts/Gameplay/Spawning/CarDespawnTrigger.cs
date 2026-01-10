@@ -1,8 +1,11 @@
 using Unity.Netcode;
 using UnityEngine;
+using System;
 
 public class CarDespawnTrigger : MonoBehaviour
 {
+    public static event Action OnCarPassed;
+
     private void OnTriggerEnter(Collider other)
     {
         if (other == null) return;
@@ -33,6 +36,8 @@ public class CarDespawnTrigger : MonoBehaviour
                 PlayerManager.Instance.IncreaseScoreServerRpc(localPlayerId, 1);
             }
             else Debug.LogError("player score manager or net manager is null");
+
+            OnCarPassed?.Invoke();
         }
     }
 }
