@@ -61,10 +61,11 @@ public class UIManager : MonoBehaviour
                 break;
             case GameState.PostGame:
                 postGameUIObj.SetActive(true);
+                if (LeaderboardManager.Instance != null)
+                    LeaderboardManager.Instance.SubmitScore();
                 break;
             case GameState.Tutorial:
                 tutorialUIObj.SetActive(true);
-                Debug.Log("Tutorial UI activated");
                 break;
         }
     }
