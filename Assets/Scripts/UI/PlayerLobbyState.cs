@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Text;
 using TMPro;
 using Unity.Netcode;
@@ -16,7 +17,7 @@ public class PlayerLobbyState : MonoBehaviour
     private float lastUpdateTime;
     private bool lastAllReadyState;
 
-    private void Start()
+    private void OnEnable()
     {
         if (readyButton != null)
         {
@@ -25,6 +26,12 @@ public class PlayerLobbyState : MonoBehaviour
 
         var ui = UIManager.Instance.GetMenuUI();
         AllPlayersReady += (state) => ui.SetHostStart(state);
+    }
+
+    private void OnDestroy()
+    {
+        var ui = UIManager.Instance.GetMenuUI();
+        AllPlayersReady -= (state) => ui.SetHostStart(state);
     }
 
     private void Update()
@@ -51,10 +58,10 @@ public class PlayerLobbyState : MonoBehaviour
         }
 
         StringBuilder sb = new StringBuilder();
-        var usernames = PlayerManager.Instance.GetAllPlayerUsernames();
-        var readyStates = PlayerManager.Instance.GetAllPlayerReadyStates();
-
+        Dictionary<ulong, string> usernames = PlayerManager.Instance.GetAllPlayerUsernames();
+        Dictionary<ulong, bool> readyStates = PlayerManager.Instance.GetAllPlayerReadyStates();
         bool allReady = usernames.Count > 0;
+
         foreach (var player in usernames)
         {
             ulong playerId = player.Key;

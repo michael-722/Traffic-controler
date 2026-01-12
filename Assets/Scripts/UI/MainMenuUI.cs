@@ -23,6 +23,11 @@ public class MainMenuUI : MonoBehaviour
     [SerializeField] private Button hostStartGameBtn;
     [SerializeField] private Button hostBackBtn;
 
+    [SerializeField] private GameObject hostingUIObj;
+    [SerializeField] private GameObject joinedUIObj;
+    [SerializeField] private GameObject LANHostingUIObj;
+    [SerializeField] private GameObject LANJoinedUIObj;
+
     private void Start()
     {
         OnStartHostPressed += Relay.Instance.CreateHost;
@@ -146,5 +151,25 @@ public class MainMenuUI : MonoBehaviour
     {
         GameManager.Instance.SetState(GameState.Tutorial);
         TutorialManager.Instance.StartTutorial();
+    }
+
+    public void showOnlineHostingUI()
+    {
+        hostingUIObj.SetActive(true);
+    }
+
+    public void showOnlineJoinedUI()
+    {
+        joinedUIObj.SetActive(true);
+    }
+
+    public void showLANHostingUI()
+    {
+        LANHostingUIObj.SetActive(true);
+    }
+
+    public void showLANJoinedUI()
+    {
+        LANJoinedUIObj.SetActive(true);
     }
 }

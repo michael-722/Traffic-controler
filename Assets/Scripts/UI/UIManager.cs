@@ -1,4 +1,5 @@
 using System;
+using Unity.Netcode;
 using UnityEngine;
 
 public class UIManager : MonoBehaviour
@@ -53,17 +54,23 @@ public class UIManager : MonoBehaviour
         {
             case GameState.Lobby:
                 menuUIObj.SetActive(true);
-                if (TutorialManager.Instance != null)
-                    TutorialManager.Instance.ShowTutorial();
                 break;
+
             case GameState.Gameplay:
                 inGameUIObj.SetActive(true);
                 break;
+
             case GameState.PostGame:
                 postGameUIObj.SetActive(true);
                 if (LeaderboardManager.Instance != null)
+                {
+                    if (!NetworkManager.Singleton.IsServer) return;
                     LeaderboardManager.Instance.SubmitScore();
+                }
+
+                else Debug.LogError("leaderboard manager is null");
                 break;
+
             case GameState.Tutorial:
                 tutorialUIObj.SetActive(true);
                 break;

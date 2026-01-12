@@ -18,21 +18,25 @@ public class Username : MonoBehaviour
             Instance = this;
             DontDestroyOnLoad(gameObject);
         }
-        else
-        {
-            Destroy(gameObject);
-        }
+        else Destroy(gameObject);
     }
 
-    void Start()
+    private void OnEnable()
     {
         usernameInputField.onValueChanged.AddListener(OnUsernameInputChanged);
         UpdateButtonInteractability(usernameInputField.text);
     }
 
+    private void OnDisable()
+    {
+        usernameInputField.onValueChanged.RemoveListener(OnUsernameInputChanged);
+    }
+
     private void OnUsernameInputChanged(string newUsername)
     {
-        SavedUsername = newUsername;
+        if (!string.IsNullOrWhiteSpace(newUsername))
+            SavedUsername = newUsername;
+
         UpdateButtonInteractability(newUsername);
     }
 

@@ -57,6 +57,37 @@ public class GameManager : NetworkBehaviour
         state.Value = newState;
         OnGameStateChanged?.Invoke(newState);
     }
+
+    public void RequestReturnToLobby()
+    {
+        NetworkManager.Singleton.Shutdown();
+        SetState(GameState.Lobby);
+    }
+
+    public void RequestRestGame()
+    {
+        MainMenuUI ui = UIManager.Instance.GetMenuUI();
+        if (ui == null)
+        {
+            Debug.LogError("ui is null cannot reset game");
+            return;
+        }
+
+        if (IsServer)
+        {
+            PlayerManager.Instance.ResetAllPlayersScore();
+            WinLoseConditions.Instance.ResetConditions();
+
+            //need to differentiate between online and LAN
+            ui.showOnlineHostingUI();
+            SetState(GameState.Lobby);
+        }
+        else
+        {
+            //need to differentiate between online and LAN
+            ui.showOnlineJoinedUI();
+        }
+    }
 }
 
 public enum GameState

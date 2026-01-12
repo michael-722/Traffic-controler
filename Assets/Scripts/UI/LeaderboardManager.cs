@@ -120,8 +120,6 @@ public class LeaderboardManager : NetworkBehaviour
 
     public async void SubmitScore()
     {
-        if (!IsServer) return;
-
         //get initals for all players - leaderabord name
         Dictionary<ulong, string> usernames = PlayerManager.Instance.GetAllPlayerUsernames();
         List<string> initialsList = new List<string>();
@@ -139,7 +137,7 @@ public class LeaderboardManager : NetworkBehaviour
         //calculate total score
         Dictionary<ulong, int> scores = PlayerManager.Instance.GetAllPlayerScores();
         int totalScore = 0;
-       
+
         foreach (int score in scores.Values)
             totalScore += score;
 
@@ -147,11 +145,13 @@ public class LeaderboardManager : NetworkBehaviour
         await AuthenticationService.Instance.UpdatePlayerNameAsync(leaderboardName);
         await LeaderboardsService.Instance.AddPlayerScoreAsync(leaderboardID, totalScore);
 
+        /*
         await Task.Delay(250);
 
         //reset session so can resubmit again
         AuthenticationService.Instance.SignOut();
         AuthenticationService.Instance.ClearSessionToken();
         await TrySignIn();
+        */
     }
 }

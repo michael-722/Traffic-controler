@@ -51,9 +51,7 @@ public class CarWaitUI : NetworkBehaviour
         if (!isActive.Value) return;
 
         if (currentTime.Value < countdownTime)
-        {
             currentTime.Value += Time.deltaTime;
-        }
         else
         {
             if (!IsSpawned)
@@ -68,9 +66,7 @@ public class CarWaitUI : NetworkBehaviour
     private void HandlePenaltyServer()
     {
         if (penaltyTimer.Value < penaltyTime)
-        {
             penaltyTimer.Value += Time.deltaTime;
-        }
         else
         {
             penaltyTimer.Value = 0f;

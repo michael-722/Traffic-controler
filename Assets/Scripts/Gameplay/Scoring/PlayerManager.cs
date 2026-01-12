@@ -17,32 +17,44 @@ public class PlayerManager : NetworkBehaviour
     [ServerRpc(RequireOwnership = false)]
     public void IncreaseScoreServerRpc(ulong clientId, int amount)
     {
-        PlayerScore playerScore = FindPlayerScoreForClient(clientId);
+        PlayerInfo playerInfo = FindPlayerScoreForClient(clientId);
 
-        if (playerScore != null) playerScore.addScore(amount);
+        if (playerInfo != null) playerInfo.addScore(amount);
         else Debug.LogError($"playerscore for client {clientId} not found");
     }
 
     [ServerRpc(RequireOwnership = false)]
     public void DecreaseScoreServerRpc(ulong clientId, int amount)
     {
-        PlayerScore playerScore = FindPlayerScoreForClient(clientId);
+        PlayerInfo playerInfo = FindPlayerScoreForClient(clientId);
 
-        if (playerScore != null) playerScore.subtractScore(amount);
+        if (playerInfo != null) playerInfo.subtractScore(amount);
         else Debug.LogError($"playerscore for client {clientId} not found");
     }
 
-    private PlayerScore FindPlayerScoreForClient(ulong clientId)
+    public void ResetAllPlayersScore()
     {
-        PlayerScore[] allPlayerScores = FindObjectsByType<PlayerScore>(FindObjectsInactive.Include, FindObjectsSortMode.InstanceID);
+        if (!IsServer) return;
 
-        foreach (PlayerScore playerScore in allPlayerScores)
+        PlayerInfo[] playerInfo = FindObjectsByType<PlayerInfo>(FindObjectsInactive.Include, FindObjectsSortMode.InstanceID);
+        foreach (PlayerInfo info in playerInfo)
         {
-            if (playerScore != null)
+            if (info != null)
+                info.setScore(0);
+        }
+    }
+
+    private PlayerInfo FindPlayerScoreForClient(ulong clientId)
+    {
+        PlayerInfo[] playerInfo = FindObjectsByType<PlayerInfo>(FindObjectsInactive.Include, FindObjectsSortMode.InstanceID);
+
+        foreach (PlayerInfo info in playerInfo)
+        {
+            if (info != null)
             {
-                NetworkObject networkObject = playerScore.GetComponent<NetworkObject>();
+                NetworkObject networkObject = info.GetComponent<NetworkObject>();
                 if (networkObject != null && networkObject.IsSpawned && networkObject.OwnerClientId == clientId)
-                    return playerScore;
+                    return info;
             }
         }
         return null;
@@ -50,24 +62,24 @@ public class PlayerManager : NetworkBehaviour
 
     public int getPlayerScore(ulong clientId)
     {
-        PlayerScore playerScore = FindPlayerScoreForClient(clientId);
-        if (playerScore != null) return playerScore.GetScore();
+        PlayerInfo playerInfo = FindPlayerScoreForClient(clientId);
+        if (playerInfo != null) return playerInfo.GetScore();
         return 0;
     }
 
     public Dictionary<ulong, int> GetAllPlayerScores()
     {
         Dictionary<ulong, int> scores = new Dictionary<ulong, int>();
-        PlayerScore[] allPlayerScores = FindObjectsByType<PlayerScore>(FindObjectsSortMode.InstanceID);
+        PlayerInfo[] playersInfo = FindObjectsByType<PlayerInfo>(FindObjectsSortMode.InstanceID);
 
-        foreach (PlayerScore playerScore in allPlayerScores)
+        foreach (PlayerInfo info in playersInfo)
         {
-            if (playerScore != null)
+            if (info != null)
             {
-                NetworkObject networkObject = playerScore.GetComponent<NetworkObject>();
+                NetworkObject networkObject = info.GetComponent<NetworkObject>();
                 if (networkObject != null)
                 {
-                    scores[networkObject.OwnerClientId] = playerScore.GetScore();
+                    scores[networkObject.OwnerClientId] = info.GetScore();
                 }
             }
         }
@@ -77,15 +89,15 @@ public class PlayerManager : NetworkBehaviour
     public Dictionary<ulong, string> GetAllPlayerUsernames()
     {
         Dictionary<ulong, string> usernames = new Dictionary<ulong, string>();
-        PlayerScore[] allPlayerScores = FindObjectsByType<PlayerScore>(FindObjectsSortMode.InstanceID);
+        PlayerInfo[] playersInfo = FindObjectsByType<PlayerInfo>(FindObjectsSortMode.InstanceID);
 
-        foreach (PlayerScore playerScore in allPlayerScores)
+        foreach (PlayerInfo info in playersInfo)
         {
-            if (playerScore != null)
+            if (info != null)
             {
-                NetworkObject netObj = playerScore.GetComponent<NetworkObject>();
+                NetworkObject netObj = info.GetComponent<NetworkObject>();
                 if (netObj != null)
-                    usernames[netObj.OwnerClientId] = playerScore.GetUsername();
+                    usernames[netObj.OwnerClientId] = info.GetUsername();
             }
         }
         return usernames;
