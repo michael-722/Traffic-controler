@@ -10,6 +10,7 @@ public class  PostGameUI : MonoBehaviour
     public void PlayAgainPressed()
     {
         PlayAgain();
+        LeaderboardManager.Instance.ResetLeaderboardSession();
     }
 
     private async void PlayAgain()

@@ -8,16 +8,6 @@ using UnityEngine;
 public class TutorialManager : MonoBehaviour
 {
     public static TutorialManager Instance;
-    /*
- tutorial needs to do the following:
-
-- show cera movement and player area 
-- show that cars spawn and will approach traffic lights then wait 
-- show that player needs to interact with traffic lights to let cars through
-- show that cars will get impatient and leave if not let through in time
-- show that crashes deduct points
-- show that letting cars through gives points
- */
 
     [SerializeField] private TMP_Text instructionText;
     [SerializeField] private GameObject tutorialPanel;
@@ -30,17 +20,32 @@ public class TutorialManager : MonoBehaviour
     [SerializeField] private List<Transform> carSpawnPoints;
 
     [SerializeField] private GameObject TutorialLayout;
+    [SerializeField] private float spawnInterval = 7f;
 
     private GameObject activeRing;
     private List<GameObject> spawnedCars = new List<GameObject>();
     private bool carSpawnEnabled = false;
     private Coroutine carSpawnRoutine;
 
-    private void Start()
+    /*
+    tutorial needs to do the following:
+
+    - show cera movement and player area 
+    - show that cars spawn and will approach traffic lights then wait 
+    - show that player needs to interact with traffic lights to let cars through
+    - show that cars will get impatient and leave if not let through in time
+    - show that crashes deduct points
+    - show that letting cars through gives points
+    */
+
+    private void Awake()
     {
         if (Instance == null) Instance = this;
         else Destroy(gameObject);
+    }
 
+    private void Start()
+    {
         enableCarSpawning();
     }
 
@@ -145,7 +150,6 @@ public class TutorialManager : MonoBehaviour
 
     private IEnumerator CarSpawnLoop()
     {
-        float spawnInterval = 7f;
         while (carSpawnEnabled)
         {
             int index = UnityEngine.Random.Range(0, carSpawnPoints.Count);
@@ -168,7 +172,7 @@ public class TutorialManager : MonoBehaviour
         }
     }
 
-    //display text and wait
+    //display text and wait for condition to be met
     private IEnumerator RunStep(string message, Func<bool> completionCondition)
     {
         instructionText.text = message;

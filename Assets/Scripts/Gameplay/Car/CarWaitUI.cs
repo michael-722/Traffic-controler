@@ -37,10 +37,8 @@ public class CarWaitUI : NetworkBehaviour
 
     private void Update()
     {
-        if (IsSpawned)
-            if (!IsServer) return;
-
-        UpdateServerLogic();
+        if (IsServer || !IsSpawned)
+            UpdateServerLogic();
 
         if (isActive.Value)
             UpdateVisuals(currentTime.Value);

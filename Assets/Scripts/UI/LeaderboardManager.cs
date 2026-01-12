@@ -144,14 +144,13 @@ public class LeaderboardManager : NetworkBehaviour
         //need to get host user name and total score here <==============================
         await AuthenticationService.Instance.UpdatePlayerNameAsync(leaderboardName);
         await LeaderboardsService.Instance.AddPlayerScoreAsync(leaderboardID, totalScore);
+    }
 
-        /*
-        await Task.Delay(250);
-
+    public async void ResetLeaderboardSession()
+    {
         //reset session so can resubmit again
         AuthenticationService.Instance.SignOut();
         AuthenticationService.Instance.ClearSessionToken();
         await TrySignIn();
-        */
     }
 }

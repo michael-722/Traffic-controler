@@ -89,6 +89,7 @@ public class MainMenuUI : MonoBehaviour
         joinCodeInput.text = "";
         ipInput.text = "";
 
+        UpdateConnectedPlayerCount(0);
         joinedWaiting.color = Color.white;
     }
 
@@ -155,6 +156,9 @@ public class MainMenuUI : MonoBehaviour
 
     public void showOnlineHostingUI()
     {
+        if (joinCodeDisplay.text == "Generating code...") TutorialManager.Instance.ShowTutorial();
+        else TutorialManager.Instance.HideTutorial();
+
         hostingUIObj.SetActive(true);
     }
 
