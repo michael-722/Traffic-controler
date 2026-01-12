@@ -1,6 +1,7 @@
 using System.Text;
 using UnityEngine;
 using TMPro;
+using System.Collections.Generic;
 
 public class ScoreDisplay : MonoBehaviour
 {
@@ -27,8 +28,8 @@ public class ScoreDisplay : MonoBehaviour
         if (showAllPlayers)
         {
             StringBuilder sb = new StringBuilder();
-            var scores = PlayerManager.Instance.GetAllPlayerScores();
-            var usernames = PlayerManager.Instance.GetAllPlayerUsernames();
+            Dictionary<ulong, int> scores = PlayerManager.Instance.GetAllPlayerScores();
+            Dictionary<ulong, string> usernames = PlayerManager.Instance.GetAllPlayerUsernames();
 
             if (scores.Count == 0) return;
 

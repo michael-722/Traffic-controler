@@ -4,7 +4,6 @@ using UnityEngine.UI;
 
 public class InGameUI : MonoBehaviour
 {
-    [SerializeField] private TMP_Text journiesLeftTxt;
     [SerializeField] private Image timeLeftImg;
 
     private RectTransform timeFillRect;
@@ -27,9 +26,6 @@ public class InGameUI : MonoBehaviour
     private void RefreshUI()
     {
         WinLoseConditions state = WinLoseConditions.Instance;
-
-        int left = state.requiredJourniesToWin - state.currentJournies.Value;
-        journiesLeftTxt.text = $"Journies Left: {left}";
 
         float fillAmount = Mathf.Clamp01(state.timeToComplete.Value / WinLoseConditions.Instance.maxTime);
         timeFillRect.sizeDelta = new Vector2(originalTimeFillWidth * fillAmount, timeFillRect.sizeDelta.y);

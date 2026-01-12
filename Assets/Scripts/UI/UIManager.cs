@@ -62,13 +62,6 @@ public class UIManager : MonoBehaviour
 
             case GameState.PostGame:
                 postGameUIObj.SetActive(true);
-                if (LeaderboardManager.Instance != null)
-                {
-                    if (!NetworkManager.Singleton.IsServer) return;
-                    LeaderboardManager.Instance.SubmitScore();
-                }
-
-                else Debug.LogError("leaderboard manager is null");
                 break;
 
             case GameState.Tutorial:

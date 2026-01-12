@@ -1,8 +1,8 @@
-using System;
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
 using Unity.Netcode;
+using System;
 
 public class CarWaitUI : NetworkBehaviour
 {
@@ -25,13 +25,11 @@ public class CarWaitUI : NetworkBehaviour
 
     private void Start()
     {
-        isActive.OnValueChanged += OnActiveChanged;
         waitTimerRootObj.SetActive(false);
     }
 
     public override void OnNetworkSpawn()
     {
-        isActive.OnValueChanged += OnActiveChanged;
         waitTimerRootObj.SetActive(isActive.Value);
     }
 
@@ -48,9 +46,9 @@ public class CarWaitUI : NetworkBehaviour
     {
         if (!isActive.Value) return;
 
-        if (currentTime.Value < countdownTime)
-            currentTime.Value += Time.deltaTime;
-        else
+        currentTime.Value += Time.deltaTime;
+
+        if (currentTime.Value >= countdownTime)
         {
             if (!IsSpawned)
                 StartShakeLocal();
@@ -73,6 +71,7 @@ public class CarWaitUI : NetworkBehaviour
             //score penalty
             int quad = PlayerSpawner.instance.GetQuadrantFromPosition(transform.position);
             ulong ownerId = PlayerSpawner.instance.GetPlayerInQuadrant(quad);
+
             PlayerManager.Instance.DecreaseScoreServerRpc(ownerId, 1);
         }
     }
@@ -91,10 +90,12 @@ public class CarWaitUI : NetworkBehaviour
         waitUI.fillAmount = t;
     }
 
-    public void UIstate(bool state)
+    public void SetState(bool state)
     {
         if (IsSpawned)
             if (!IsServer) return;
+
+        waitTimerRootObj.SetActive(state);
 
         isActive.Value = state;
         if (state)
@@ -102,14 +103,13 @@ public class CarWaitUI : NetworkBehaviour
             currentTime.Value = 0f;
             penaltyTimer.Value = 0f;
         }
-    }
-
-    private void OnActiveChanged(bool prev, bool curr)
-    {
-        waitTimerRootObj.SetActive(curr);
-
-        if (!curr)
+        else
         {
+            int quad = PlayerSpawner.instance.GetQuadrantFromPosition(transform.position);
+            ulong ownerId = PlayerSpawner.instance.GetPlayerInQuadrant(quad);
+
+            StatTracker.Instance.AddWaitTimeServerRpc(ownerId, currentTime.Value);
+
             if (shakeCoroutine != null) StopCoroutine(shakeCoroutine);
             shakeCoroutine = null;
         }
@@ -160,5 +160,13 @@ public class CarWaitUI : NetworkBehaviour
         waitTimerRootObj.transform.localPosition = originalPos;
         waitTimerRootObj.transform.localScale = originalScale;
         shakeCoroutine = null;
+    }
+
+    public void UpdateWaitTime()
+    {
+        int quad = PlayerSpawner.instance.GetQuadrantFromPosition(transform.position);
+        ulong ownerId = PlayerSpawner.instance.GetPlayerInQuadrant(quad);
+
+        StatTracker.Instance.AddWaitTimeServerRpc(ownerId, currentTime.Value);
     }
 }

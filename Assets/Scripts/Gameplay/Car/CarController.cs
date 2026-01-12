@@ -61,6 +61,8 @@ public class CarController : NetworkBehaviour
 
         leftBlinkers.setBlinkers(false);
         rightBlinkers.setBlinkers(false);
+
+
     }
 
     private float GetCarWidth()
@@ -204,10 +206,13 @@ public class CarController : NetworkBehaviour
         StartCoroutine(HandleTrafficLight());
     }
 
+    // Replace the relevant section in HandleTrafficLight
     private IEnumerator HandleTrafficLight()
     {
         waitingAtLight = true;
-        carWaitUI.UIstate(true);
+        carWaitUI.SetState(true);
+
+        bool firstCheck = true;
 
         //wait at light
         while (waitingAtLight)
@@ -230,6 +235,7 @@ public class CarController : NetworkBehaviour
                     rearTriggerInstance.transform.parent = originalParent;
                 }
                 yield return null;
+                firstCheck = false;
                 continue;
             }
             //go/move up when green
@@ -245,6 +251,9 @@ public class CarController : NetworkBehaviour
                 if (!isQueued)
                 {
                     waitingAtLight = false;
+                    if (firstCheck)
+                        //register even if no wait
+                        StatTracker.Instance.AddWaitTimeServerRpc(OwnerClientId, 0f);
                     break;
                 }
                 //queued
@@ -256,9 +265,10 @@ public class CarController : NetworkBehaviour
             }
 
             yield return null;
+            firstCheck = false;
         }
 
-        carWaitUI.UIstate(false);
+        carWaitUI.SetState(false);
         StartCoroutine(MoveThroughJunction());
     }
 
@@ -435,5 +445,7 @@ public class CarController : NetworkBehaviour
         hasCrashed = state;
         rb.angularVelocity = Vector3.zero;
         rb.linearVelocity = Vector3.zero;
+
+        if (waitingAtLight) carWaitUI.UpdateWaitTime();
     }
 }

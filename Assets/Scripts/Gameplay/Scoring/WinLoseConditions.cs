@@ -8,7 +8,6 @@ public class WinLoseConditions : NetworkBehaviour
     public NetworkVariable<float> timeToComplete = new NetworkVariable<float>(120f);
     public NetworkVariable<int> currentJournies = new NetworkVariable<int>(0);
     
-    public int requiredJourniesToWin = 40;
     [HideInInspector] public float maxTime;
     //getters for these instead of public vars? <======
 
@@ -39,8 +38,6 @@ public class WinLoseConditions : NetworkBehaviour
         if (!IsServer) return;
 
         currentJournies.Value++;
-        if (currentJournies.Value >= requiredJourniesToWin)
-            EndGame();
     }
 
     private void EndGame()

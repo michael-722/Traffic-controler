@@ -7526,6 +7526,10 @@ MonoBehaviour:
   joinedWaiting: {fileID: 1850814727921528395}
   hostStartGameBtn: {fileID: 840775095955734701}
   hostBackBtn: {fileID: 543646724116544194}
+  hostingUIObj: {fileID: 8763737817967350434}
+  joinedUIObj: {fileID: 2197296489042313895}
+  LANHostingUIObj: {fileID: 8433986727759682714}
+  LANJoinedUIObj: {fileID: 2043096442630076031}
 --- !u!1 &5303334439167163703
 GameObject:
   m_ObjectHideFlags: 0
@@ -11832,7 +11836,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a1aa028b92845364c9fdc7dd04561b52, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  journiesLeftTxt: {fileID: 5122131266879951079}
   timeLeftImg: {fileID: 5844026718329832730}
 --- !u!1 &8707403534079579009
 GameObject:

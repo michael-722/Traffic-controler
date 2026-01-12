@@ -1052,7 +1052,6 @@ MonoBehaviour:
   leaderboardUI: {fileID: 7649563724577078700}
   scrollviewContent: {fileID: 4673813112757785671}
   entryPrefab: {fileID: 6837058189125872301, guid: 1a3c0163f71108b4abbcdc66c46af385, type: 3}
-  TotalScoreTxt: {fileID: 0}
   leaderboardID: Leaderboard1
 --- !u!1 &5159644443032018663
 GameObject:
@@ -1494,7 +1493,6 @@ GameObject:
   - component: {fileID: 6635583050601630342}
   - component: {fileID: 2241883181922977458}
   - component: {fileID: 5806505029207755681}
-  - component: {fileID: 2500218187507654808}
   m_Layer: 5
   m_Name: LeadderboardBG
   m_TagString: Untagged
@@ -1567,28 +1565,6 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!95 &2500218187507654808
-Animator:
-  serializedVersion: 7
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7649563724577078700}
-  m_Enabled: 1
-  m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: e8d5baf71b9d3c6438058eb83f8e8632, type: 2}
-  m_CullingMode: 0
-  m_UpdateMode: 0
-  m_ApplyRootMotion: 0
-  m_LinearVelocityBlending: 0
-  m_StabilizeFeet: 0
-  m_AnimatePhysics: 0
-  m_WarningMessage: 
-  m_HasTransformHierarchy: 1
-  m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorStateOnDisable: 0
-  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &8553168236468602892
 GameObject:
   m_ObjectHideFlags: 0

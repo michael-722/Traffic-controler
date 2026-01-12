@@ -33,7 +33,7 @@ public class CarDespawnTrigger : MonoBehaviour
             {
                 //ulong localPlayerId = NetworkManager.Singleton.LocalClientId;//triggers on server need to get player area collision happened in for id 
                 ulong localPlayerId = GetComponentInParent<NetworkObject>().OwnerClientId;
-                PlayerManager.Instance.IncreaseScoreServerRpc(localPlayerId, 1);
+                PlayerManager.Instance.IncreaseScoreServerRpc(localPlayerId, 5);
             }
             else Debug.LogError("player score manager or net manager is null");
 

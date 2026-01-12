@@ -7,8 +7,6 @@ public class CarSpawner : NetworkBehaviour
 {
     public static CarSpawner Instance;
 
-    public event Action EnableCarSpawning;
-
     [SerializeField] private GameObject carPrefab;
     [SerializeField] private float spawnInterval = 3f;
     [SerializeField] private int carsPerPlayer = 10;
@@ -89,6 +87,7 @@ public class CarSpawner : NetworkBehaviour
 
         if (NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(netObjId, out NetworkObject car))
         {
+            if (car == null) return;
             car.Despawn(true);
             spawnedCars.Value.Remove(netObjId);
         }

@@ -18,15 +18,13 @@ using UnityEngine;
  * |- automatically submit score under hostuser name
  */
 
-public class LeaderboardManager : NetworkBehaviour
+public class LeaderboardManager : MonoBehaviour
 {
     public static LeaderboardManager Instance;
 
     [SerializeField] private GameObject leaderboardUI;
     [SerializeField] private Transform scrollviewContent;
     [SerializeField] private Transform entryPrefab;
-
-    [SerializeField] private TMP_Text TotalScoreTxt;
 
     [SerializeField] private string leaderboardID;
 
@@ -152,5 +150,10 @@ public class LeaderboardManager : NetworkBehaviour
         AuthenticationService.Instance.SignOut();
         AuthenticationService.Instance.ClearSessionToken();
         await TrySignIn();
+    }
+
+    public void SetLeaderboardState(bool state)
+    {
+        leaderboardUI.SetActive(state);
     }
 }
