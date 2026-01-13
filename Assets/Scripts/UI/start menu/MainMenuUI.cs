@@ -41,6 +41,14 @@ public class MainMenuUI : MonoBehaviour
         OnStartLANPressed += Relay.Instance.CreateLAN;
         OnJoinLANPressed += Relay.Instance.JoinLAN;
         OnStartGamePressed += () => GameManager.Instance.RequestStartGame();
+
+        readyUpBtn.interactable = false;
+        hostStartGameBtn.interactable = false;
+        hostBackBtn.interactable = false;
+
+        readyUpLANBtn.interactable = false;
+        hostStartGameLANBtn.interactable = false;
+        hostBackLANBtn.interactable = false;
     }
 
     public void StartHostBtn()
@@ -100,6 +108,14 @@ public class MainMenuUI : MonoBehaviour
         joinedWaiting.text = "Waiting for host to start game...";
         joinCodeInput.text = "";
         ipInput.text = "";
+
+        readyUpBtn.interactable = false;
+        hostStartGameBtn.interactable = false;
+        hostBackBtn.interactable = false;
+
+        readyUpLANBtn.interactable = false;
+        hostStartGameLANBtn.interactable = false;
+        hostBackLANBtn.interactable = false;
 
         UpdateConnectedPlayerCount(0);
         joinedWaiting.color = Color.white;
