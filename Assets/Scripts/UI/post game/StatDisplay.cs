@@ -10,8 +10,15 @@ public class StatDisplay : MonoBehaviour
 
     private bool isListenerAdded = false;
 
-    private void Start() => TryAddGameStateListener();
-    private void OnEnable() => TryAddGameStateListener();
+    private void Start()
+    {
+        TryAddGameStateListener();
+    }
+
+    private void OnEnable()
+    {
+        TryAddGameStateListener();
+    }
 
     private void OnDisable()
     {
@@ -28,7 +35,6 @@ public class StatDisplay : MonoBehaviour
         {
             GameManager.Instance.OnGameStateChanged += HandleGameStateChanged;
             isListenerAdded = true;
-            // Immediate check for mid-game joins
             if (GameManager.Instance.GetState() == GameState.PostGame) SetStatsState(true);
         }
     }
@@ -44,7 +50,6 @@ public class StatDisplay : MonoBehaviour
 
         if (state)
         {
-            // We use a delay to ensure NetworkVariables have synced across the network
             CancelInvoke(nameof(UpdateStats));
             Invoke(nameof(UpdateStats), 0.5f);
         }
@@ -53,19 +58,15 @@ public class StatDisplay : MonoBehaviour
 
     private void UpdateStats()
     {
-        // GATHER ALL DATA
-        var playernames = PlayerManager.Instance.GetAllPlayerUsernames();
-        var playerscores = PlayerManager.Instance.GetAllPlayerScores();
-        var playerCrashes = StatTracker.Instance.GetAllPlayerCrashes();
-        var playerTotalWait = StatTracker.Instance.GetAllPlayerTotalWaitTime();
-        var playerWaitEntries = StatTracker.Instance.GetAllPlayerWaitTimeEnties();
-
-        // DEBUG: If this is 0 on clients, PlayerManager isn't finding the NetworkObjects
-        Debug.Log($"[StatDisplay] Found {playerscores.Count} players in score dictionary.");
+        Dictionary<ulong, string> playernames = PlayerManager.Instance.GetAllPlayerUsernames();
+        Dictionary<ulong, int> playerscores = PlayerManager.Instance.GetAllPlayerScores();
+        Dictionary<ulong, int> playerCrashes = StatTracker.Instance.GetAllPlayerCrashes();
+        Dictionary<ulong, float> playerTotalWait = StatTracker.Instance.GetAllPlayerTotalWaitTime();
+        Dictionary<ulong, int> playerWaitEntries = StatTracker.Instance.GetAllPlayerWaitTimeEnties();
 
         if (playerscores.Count == 0)
         {
-            // If we found nothing, try one more time in a second (Netcode sync delay)
+            //delayed reattempt
             Invoke(nameof(UpdateStats), 1.0f);
             return;
         }
@@ -83,7 +84,7 @@ public class StatDisplay : MonoBehaviour
             playerResults.Add((playerId, score, totalWait, avgWait, crashes));
         }
 
-        // SORTING
+        //sort by score desc, avg wait asc
         playerResults.Sort((a, b) =>
         {
             int scoreCompare = b.score.CompareTo(a.score);
@@ -91,7 +92,7 @@ public class StatDisplay : MonoBehaviour
             return a.avgWait.CompareTo(b.avgWait);
         });
 
-        // UI POPULATION
+        //display
         for (int i = 0; i < playerStatDisplay.Count; i++)
         {
             if (i < playerResults.Count)
