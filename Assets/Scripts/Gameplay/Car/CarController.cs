@@ -104,11 +104,8 @@ public class CarController : NetworkBehaviour
     private void OnTriggerEnter(Collider trigger)
     {
         if (!IsServer && IsSpawned) return;
-        if (isMoving || hasCrashed) return;
+        if (isMoving || waitingAtLight || hasCrashed) return;
         if (!trigger.transform.name.Contains("Trigger")) return;
-
-        waitingAtLight = true;
-        rb.linearVelocity = Vector3.zero;
 
         currentJunction = trigger.gameObject.GetComponentInParent<JunctionController>();
         if (currentJunction == null)
@@ -130,7 +127,7 @@ public class CarController : NetworkBehaviour
         //trigger alignment check
         Vector3 triggerForward = -trigger.transform.forward;
         float alignment = Mathf.Abs(Vector3.Dot(triggerForward.normalized, transform.forward.normalized));
-        if (isQueued && alignment < 0.9f)
+        if (alignment < 0.9f)
         {
             waitingAtLight = false;
             return;
@@ -206,6 +203,7 @@ public class CarController : NetworkBehaviour
         {
             if (hasCrashed) break;
             TrafficLightState lightState = currentLight.GetCurrentState();
+            Debug.Log($"{name} light state: {lightState} queued: {isQueued}");
 
             //wait when red/yellow
             if (lightState == TrafficLightState.Red || lightState == TrafficLightState.Yellow)
@@ -214,12 +212,14 @@ public class CarController : NetworkBehaviour
                 {
                     rearTriggerActive = true;
 
+                    Vector3 clonePosition = transform.position - (transform.forward * carLength) - (transform.up * 2);
                     GameObject originalTrigger = rearTriggerInstance;
-                    Transform originalParent = rearTriggerInstance.transform.parent;
-                    Vector3 clonePosition = rearTriggerInstance.transform.position - transform.forward * 8f;
-
-                    rearTriggerInstance = Instantiate(originalTrigger, clonePosition, originalTrigger.transform.rotation);
-                    rearTriggerInstance.transform.parent = originalParent;
+                    
+                    GameObject newTrigger = Instantiate(originalTrigger, clonePosition, originalTrigger.transform.rotation);
+                    
+                    newTrigger.transform.parent = originalTrigger.transform.parent;
+                    
+                    rearTriggerInstance = newTrigger;
                 }
                 yield return null;
                 firstCheck = false;

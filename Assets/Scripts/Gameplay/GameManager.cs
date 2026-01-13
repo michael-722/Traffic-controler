@@ -49,7 +49,7 @@ public class GameManager : NetworkBehaviour
     public void SetState(GameState newState)
     {
         //only server and offline can set state
-        if (!IsServer)
+        if (!IsServer && IsSpawned)
         {
             OnGameStateChanged?.Invoke(GetState());
             Debug.LogWarning("only server can set game state");
