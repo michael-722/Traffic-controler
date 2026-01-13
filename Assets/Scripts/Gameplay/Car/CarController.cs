@@ -104,101 +104,89 @@ public class CarController : NetworkBehaviour
     private void OnTriggerEnter(Collider trigger)
     {
         if (!IsServer && IsSpawned) return;
-
         if (isMoving || hasCrashed) return;
-
-        //check if is junction trigger
         if (!trigger.transform.name.Contains("Trigger")) return;
 
-        //check alignment to see if hitting the side (probably side on collision in junc) 
-        Vector3 triggerForward = trigger.transform.forward;
-        Vector3 carForward = transform.forward;
-        float alignment = Mathf.Abs(Vector3.Dot(triggerForward.normalized, carForward.normalized));
-        if (alignment < 0.9f)
-            return;
+        waitingAtLight = true;
+        rb.linearVelocity = Vector3.zero;
 
         currentJunction = trigger.gameObject.GetComponentInParent<JunctionController>();
         if (currentJunction == null)
         {
-            Debug.LogError("junction controller not found on obj");
+            waitingAtLight = false;
             return;
         }
-        
-        if (rearTriggerInstance != null && trigger.gameObject == rearTriggerInstance) return;
-         
-        Vector3 triggerCenter = trigger.bounds.center;
-        Vector3 carPosition = transform.position;  
 
-        rearTriggerInstance = trigger.gameObject;
+        if (rearTriggerInstance != null && trigger.gameObject == rearTriggerInstance)
+        {
+            waitingAtLight = false;
+            return;
+        }
+        else rearTriggerInstance = trigger.gameObject;
+
         entryDirection = GetDirectionFromTrigger(trigger.name);
         isQueued = trigger.name.Contains("(Clone)");
 
-        //entry axis
-        switch (entryDirection)
+        //trigger alignment check
+        Vector3 triggerForward = -trigger.transform.forward;
+        float alignment = Mathf.Abs(Vector3.Dot(triggerForward.normalized, transform.forward.normalized));
+        if (isQueued && alignment < 0.9f)
         {
-            case JunctionDirection.Up:
-            case JunctionDirection.Down:
-                carPosition.x = triggerCenter.x;
-                break;
-            case JunctionDirection.Left:
-            case JunctionDirection.Right:
-                carPosition.z = triggerCenter.z;
-                break;
+            waitingAtLight = false;
+            return;
         }
+
+        //align car to lane
+        Vector3 carPosition = transform.position;
+        Vector3 triggerCenter = trigger.bounds.center;
+        if (entryDirection == JunctionDirection.Up || entryDirection == JunctionDirection.Down)
+            carPosition.x = triggerCenter.x;
+        else
+            carPosition.z = triggerCenter.z;
         rb.MovePosition(carPosition);
 
-        Transform lightsParent = trigger.transform.parent.parent;//get junction obj
-        TrafficLightController[] lights = lightsParent.GetComponentsInChildren<TrafficLightController>();
-
-        currentLight = null;
-
         //find entry dir light
+        TrafficLightController[] lights = currentJunction.GetComponentsInChildren<TrafficLightController>();
+        currentLight = null;
+        //flipped bc lights are roted 180
+        Vector3 expectedLightDir = -GetWorldDirection(entryDirection);
+
         foreach (TrafficLightController light in lights)
         {
-            Vector3 lightForward = light.transform.forward;
-
-            //flipped bc lights are roted 180
-            Vector3 expectedLightDir = -GetWorldDirection(entryDirection);
-
-            float dot = Vector3.Dot(lightForward.normalized, expectedLightDir.normalized);
+            float dot = Vector3.Dot(light.transform.forward.normalized, expectedLightDir.normalized);
 
             /* traffic lights are rotated 180 - if fixed must chage dot to -dot
-             * * dot product for 180 lights
-             * dot 1 = same direction
-             * dot -1 = opposite direction
-             * dot 0 = perpendicular
-             * */
-            if (dot > 0.8f)
+            * * dot product for 180 lights
+            * dot 1 = same direction
+            * dot -1 = opposite direction
+            * dot 0 = perpendicular
+            * */
+            if (dot > 0.75f)
             {
                 currentLight = light;
                 break;
             }
         }
 
-        //==============
-        NoTrafficLightTurning[] noTrafficLightTurnings = lightsParent.GetComponentsInChildren<NoTrafficLightTurning>();
-
-        foreach (NoTrafficLightTurning turn in noTrafficLightTurnings)
-        {
-            Vector3 turnForward = turn.transform.forward;
-            Vector3 expectedTurnDir = -GetWorldDirection(entryDirection);
-
-            float dot = Vector3.Dot(turnForward.normalized, expectedTurnDir.normalized);
-
-            if (dot > 0.8f)
-            {
-                DetermineNextDirection();
-                StartCoroutine(MoveThroughJunction());
-                return;
-            }
-        }
-        //==============
-
+        //handle no traffic light
         if (currentLight == null)
         {
+            NoTrafficLightTurning[] noTrafficTurnings = currentJunction.GetComponentsInChildren<NoTrafficLightTurning>();
+            foreach (NoTrafficLightTurning turn in noTrafficTurnings)
+            {
+                float dot = Vector3.Dot(turn.transform.forward.normalized, expectedLightDir.normalized);
+                if (dot > 0.5f)
+                {
+                    waitingAtLight = false;
+                    DetermineNextDirection();
+                    StartCoroutine(MoveThroughJunction());
+                    return;
+                }
+            }
+
+            //no light/turn found
             waitingAtLight = false;
-            
-            //Debug.LogWarning($"{name} no traffic light found for junction at {trigger.transform.parent.parent.name} from dir {entryDirection}");
+            //Debug.LogWarning($"[CarController] {name} could not find light/turn for direction: {entryDirection}");
             return;
         }
 
@@ -206,7 +194,6 @@ public class CarController : NetworkBehaviour
         StartCoroutine(HandleTrafficLight());
     }
 
-    // Replace the relevant section in HandleTrafficLight
     private IEnumerator HandleTrafficLight()
     {
         waitingAtLight = true;

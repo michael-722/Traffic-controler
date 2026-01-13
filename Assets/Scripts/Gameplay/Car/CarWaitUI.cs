@@ -31,6 +31,23 @@ public class CarWaitUI : NetworkBehaviour
     public override void OnNetworkSpawn()
     {
         waitTimerRootObj.SetActive(isActive.Value);
+        isActive.OnValueChanged += OnIsActiveChanged;
+    }
+
+    public override void OnNetworkDespawn()
+    {
+        isActive.OnValueChanged -= OnIsActiveChanged;
+    }
+
+    private void OnIsActiveChanged(bool previousValue, bool newValue)
+    {
+        waitTimerRootObj.SetActive(newValue);
+
+        if (!newValue && shakeCoroutine != null)
+        {
+            StopCoroutine(shakeCoroutine);
+            shakeCoroutine = null;
+        }
     }
 
     private void Update()

@@ -46,12 +46,14 @@ public class MainMenuUI : MonoBehaviour
 
     public void StartLANBtn()
     {
+        TutorialManager.Instance.DespawnTutorialCars();
         OnStartLANPressed?.Invoke();
     }
 
     public void JoinLANBtn()
     {
         OnJoinLANPressed?.Invoke(ipInput.text);
+        TutorialManager.Instance.HideTutorial();
         ResetUIText();
     }
 
