@@ -6,6 +6,7 @@ using Unity.Services.Authentication;
 using Unity.Services.Core;
 using Unity.Services.Leaderboards;
 using Unity.Services.Leaderboards.Models;
+using Unity.VisualScripting;
 using UnityEngine;
 
 /*
@@ -118,6 +119,7 @@ public class LeaderboardManager : MonoBehaviour
 
     public async void SubmitScore()
     {
+        Debug.Log("submitting score to leaderboard");
         //get initals for all players - leaderabord name
         Dictionary<ulong, string> usernames = PlayerManager.Instance.GetAllPlayerUsernames();
         List<string> initialsList = new List<string>();
@@ -131,6 +133,7 @@ public class LeaderboardManager : MonoBehaviour
             }
         }
         string leaderboardName = string.Join("+", initialsList);
+        Debug.Log("leaderboard name: " + leaderboardName);
 
         //calculate total score
         Dictionary<ulong, int> scores = PlayerManager.Instance.GetAllPlayerScores();
@@ -138,6 +141,8 @@ public class LeaderboardManager : MonoBehaviour
 
         foreach (int score in scores.Values)
             totalScore += score;
+
+        Debug.Log("total score: " + totalScore);
 
         //need to get host user name and total score here <==============================
         await AuthenticationService.Instance.UpdatePlayerNameAsync(leaderboardName);

@@ -62,6 +62,7 @@ public class UIManager : MonoBehaviour
 
             case GameState.PostGame:
                 postGameUIObj.SetActive(true);
+                LeaderboardManager.Instance.SubmitScore();
                 break;
 
             case GameState.Tutorial:
