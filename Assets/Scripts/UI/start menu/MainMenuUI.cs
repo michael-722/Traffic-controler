@@ -20,8 +20,13 @@ public class MainMenuUI : MonoBehaviour
     [SerializeField] private TMP_Text playersConnectedCountLAN;
     [SerializeField] private TMP_Text joinedWaiting;
 
+    [SerializeField] private Button readyUpBtn;
     [SerializeField] private Button hostStartGameBtn;
     [SerializeField] private Button hostBackBtn;
+
+    [SerializeField] private Button readyUpLANBtn;
+    [SerializeField] private Button hostStartGameLANBtn;
+    [SerializeField] private Button hostBackLANBtn;
 
     [SerializeField] private GameObject hostingUIObj;
     [SerializeField] private GameObject joinedUIObj;
@@ -73,8 +78,13 @@ public class MainMenuUI : MonoBehaviour
     {
         OnDissconnectPressed?.Invoke();
 
+        readyUpBtn.interactable = false;
         hostStartGameBtn.interactable = false;
         hostBackBtn.interactable = false;
+
+        readyUpLANBtn.interactable = false;
+        hostStartGameLANBtn.interactable = false;
+        hostBackLANBtn.interactable = false;
 
         TutorialManager.Instance.ShowTutorial();
 
@@ -100,12 +110,17 @@ public class MainMenuUI : MonoBehaviour
         joinCodeDisplay.text = code;
 
         hostBackBtn.interactable = true;
+        readyUpBtn.interactable = true;
         TutorialManager.Instance.HideTutorial();
     }
 
     public void DisplayIpAdress(string ip)
     {
         ipDisplay.text = ip;
+        hostBackLANBtn.interactable = true;
+        readyUpLANBtn.interactable = true;
+
+        TutorialManager.Instance.HideTutorial();
     }
 
     public void UpdateConnectedPlayerCount(int num)
@@ -148,6 +163,11 @@ public class MainMenuUI : MonoBehaviour
     public void SetHostStart(bool state)
     {
         hostStartGameBtn.interactable = state;
+    }
+
+    public void SetHostStartLAN(bool state)
+    {
+        hostStartGameLANBtn.interactable = state;
     }
 
     public void StartTutorial()

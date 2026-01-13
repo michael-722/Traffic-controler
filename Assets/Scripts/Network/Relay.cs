@@ -204,7 +204,14 @@ public class Relay : NetworkBehaviour
 
         ipAddressFetched?.Invoke(ip);
 
-        NetworkManager.Singleton.StartHost();
+        try
+        {
+            NetworkManager.Singleton.StartHost();
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"failed to start LAN host: {e.Message}");
+        }
     }
 
     public void JoinLAN(string ip)
@@ -217,7 +224,14 @@ public class Relay : NetworkBehaviour
 
         transport.SetConnectionData(ip, 7777, null);
 
-        NetworkManager.Singleton.StartClient();
+        try
+        {
+            NetworkManager.Singleton.StartClient();
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"failed to start LAN client: {e.Message}");
+        }
     }
 
     private bool IsValidIP(string ip)

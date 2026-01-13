@@ -7524,8 +7524,12 @@ MonoBehaviour:
   playersConnectedCount: {fileID: 2052008082501079693}
   playersConnectedCountLAN: {fileID: 3002878150650750279}
   joinedWaiting: {fileID: 1850814727921528395}
+  readyUpBtn: {fileID: 0}
   hostStartGameBtn: {fileID: 840775095955734701}
   hostBackBtn: {fileID: 543646724116544194}
+  readyUpLANBtn: {fileID: 0}
+  hostStartGameLANBtn: {fileID: 0}
+  hostBackLANBtn: {fileID: 0}
   hostingUIObj: {fileID: 8763737817967350434}
   joinedUIObj: {fileID: 2197296489042313895}
   LANHostingUIObj: {fileID: 8433986727759682714}

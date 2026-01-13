@@ -19,19 +19,25 @@ public class PlayerLobbyState : MonoBehaviour
 
     private void OnEnable()
     {
-        if (readyButton != null)
-        {
-            readyButton.onClick.AddListener(OnReadyButtonClicked);
-        }
+        lastAllReadyState = false;
+        if (readyButton != null) readyButton.onClick.AddListener(OnReadyButtonClicked);
 
-        var ui = UIManager.Instance.GetMenuUI();
-        AllPlayersReady += (state) => ui.SetHostStart(state);
+        AllPlayersReady += HandleAllPlayersReady;
+        HandleAllPlayersReady(false);
     }
 
     private void OnDestroy()
     {
+        if (readyButton != null) readyButton.onClick.RemoveListener(OnReadyButtonClicked);
+        AllPlayersReady -= HandleAllPlayersReady;
+    }
+
+    private void HandleAllPlayersReady(bool state)
+    {
         var ui = UIManager.Instance.GetMenuUI();
-        AllPlayersReady -= (state) => ui.SetHostStart(state);
+
+        ui.SetHostStart(state);
+        ui.SetHostStartLAN(state);
     }
 
     private void Update()
@@ -92,9 +98,9 @@ public class PlayerLobbyState : MonoBehaviour
         }
     }
 
-    private void OnReadyButtonClicked()
+    public void OnReadyButtonClicked()
     {
-        if (!NetworkManager.Singleton.IsClient && !NetworkManager.Singleton.IsServer) return;
+        //if (!NetworkManager.Singleton.IsClient && !NetworkManager.Singleton.IsServer) return;
 
         var localPlayerObject = NetworkManager.Singleton.LocalClient.PlayerObject;
 
