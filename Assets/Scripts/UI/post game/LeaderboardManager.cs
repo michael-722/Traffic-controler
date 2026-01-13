@@ -37,7 +37,7 @@ public class LeaderboardManager : MonoBehaviour
     {
         if (Instance == null)
             Instance = this;
-        else 
+        else
         {
             Destroy(gameObject);
             return;
@@ -87,39 +87,32 @@ public class LeaderboardManager : MonoBehaviour
 
     private async void refreshLeaderboard()
     {
-        LeaderboardScoresPage leaderboardScorePage = await LeaderboardsService.Instance.GetScoresAsync(leaderboardID, new GetScoresOptions() { Limit = 100 });
+        var leaderboardScorePage = await LeaderboardsService.Instance.GetScoresAsync(leaderboardID, new GetScoresOptions() { Limit = 100 });
+        int resultsCount = leaderboardScorePage.Results.Count;
+        int childCount = scrollviewContent.childCount;
 
-        //playerid as key to stop dupes
-        List<string> existingEntries = new List<string>();
-        foreach (Transform child in scrollviewContent)
+        for (int i = 0; i < resultsCount; i++)
         {
-            TMP_Text[] texts = child.GetComponentsInChildren<TMP_Text>();
-            if (texts.Length > 2)
-            {
-                string playerName = texts[1].text;
-                existingEntries.Add(playerName);
-            }
+            LeaderboardEntry e = leaderboardScorePage.Results[i];
+            Transform entry;
+
+            if (i < childCount)//reuse existing entry
+                entry = scrollviewContent.GetChild(i);
+            else//instantiate new entry
+                entry = Instantiate(entryPrefab, scrollviewContent);
+
+            string displayName = e.PlayerName.Length > 5 ? e.PlayerName.Substring(0, e.PlayerName.Length - 5) : e.PlayerName;
+
+            entry.GetChild(1).GetComponent<TMP_Text>().text = (e.Rank + 1).ToString();
+            entry.GetChild(2).GetComponent<TMP_Text>().text = displayName;
+            entry.GetChild(3).GetComponent<TMP_Text>().text = e.Score.ToString();
         }
-
-        foreach (LeaderboardEntry e in leaderboardScorePage.Results)
-        {
-            //cut #xxxx from usernames
-            string displayName = e.PlayerName.Substring(0, e.PlayerName.Length - 5);
-
-            if (existingEntries.Contains(displayName))
-                continue;
-
-            Transform entryTransform = Instantiate(entryPrefab, scrollviewContent);
-            entryTransform.GetChild(1).GetComponent<TMPro.TextMeshProUGUI>().text = (e.Rank + 1).ToString();
-            entryTransform.GetChild(2).GetComponent<TMPro.TextMeshProUGUI>().text = displayName;
-            entryTransform.GetChild(3).GetComponent<TMPro.TextMeshProUGUI>().text = e.Score.ToString();
-        }
-        await Task.Delay(1000);
     }
 
     public async void SubmitScore()
     {
-        Debug.Log("submitting score to leaderboard");
+        if (!NetworkManager.Singleton.IsServer) return;
+
         //get initals for all players - leaderabord name
         Dictionary<ulong, string> usernames = PlayerManager.Instance.GetAllPlayerUsernames();
         List<string> initialsList = new List<string>();
@@ -128,12 +121,11 @@ public class LeaderboardManager : MonoBehaviour
         {
             if (!string.IsNullOrEmpty(username))
             {
-                string initials = username.Length >= 2 ? username.Substring(0, 2) : username;
+                string initials = username.Length >= 4 ? username.Substring(0, 4) : username;
                 initialsList.Add(initials);
             }
         }
         string leaderboardName = string.Join("+", initialsList);
-        Debug.Log("leaderboard name: " + leaderboardName);
 
         //calculate total score
         Dictionary<ulong, int> scores = PlayerManager.Instance.GetAllPlayerScores();
@@ -141,8 +133,6 @@ public class LeaderboardManager : MonoBehaviour
 
         foreach (int score in scores.Values)
             totalScore += score;
-
-        Debug.Log("total score: " + totalScore);
 
         //need to get host user name and total score here <==============================
         await AuthenticationService.Instance.UpdatePlayerNameAsync(leaderboardName);
@@ -160,5 +150,10 @@ public class LeaderboardManager : MonoBehaviour
     public void SetLeaderboardState(bool state)
     {
         leaderboardUI.SetActive(state);
+        if (!state)
+        {
+            for (int i = scrollviewContent.childCount - 1; i >= 0; i--)
+                Destroy(scrollviewContent.GetChild(i).gameObject);
+        }
     }
 }

@@ -134,6 +134,7 @@ public class MainMenuUI : MonoBehaviour
         joinedWaiting.text = msg;
         joinedWaiting.color = Color.red;
 
+        Relay.Instance.Dissconect();
         TutorialManager.Instance.ShowTutorial();
         Camera.main.transform.position = new Vector3(0f, 80f, 0f);
 

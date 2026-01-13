@@ -137,8 +137,13 @@ public class Relay : NetworkBehaviour
     public void Dissconect()
     {
         //Debug.Log("dissconnecting");
-        if (NetworkManager.Singleton.IsServer) DisconnectAllPlayersServerRpc();
-        else NetworkManager.Singleton.Shutdown();
+        if (NetworkManager.Singleton.IsServer)
+            DisconnectAllPlayersServerRpc();
+        else
+            NetworkManager.Singleton.Shutdown();
+
+        PlayerManager.Instance.ResetAllPlayersScore();
+        WinLoseConditions.Instance.ResetConditions();
     }
 
     public void Connection(ulong id)

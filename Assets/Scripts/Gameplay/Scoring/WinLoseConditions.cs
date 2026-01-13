@@ -51,7 +51,14 @@ public class WinLoseConditions : NetworkBehaviour
 
     public void ResetConditions()
     {
-        if (!IsServer) return;
+        if (IsSpawned)
+        {
+            if (!IsServer)
+            {
+                //Debug.LogError("only server can reset win lose conditions");
+                return;
+            }
+        }
 
         CarSpawner.Instance.ClearAllCars();
         currentJournies.Value = 0;

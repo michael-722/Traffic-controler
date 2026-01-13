@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class CameraManager : MonoBehaviour
@@ -12,16 +13,23 @@ public class CameraManager : MonoBehaviour
     [SerializeField] private Vector2 areaCenter = Vector2.zero;
     [SerializeField] private Vector2 areaSize = new Vector2(200, 200);
 
+    [SerializeField] private float returnSpeed = 5f;
+
     private float minX, maxX, minZ, maxZ;
 
     private Vector3 dragOrigin;
+    private bool isDragging = false;
 
-    //old input sys - update to new input sys needed=============================
+    private void Awake()
+    {
+        if (Instance != null)
+            Destroy(gameObject);
+        else
+            Instance = this;
+    }
 
     private void Start()
     {
-        Instance = this;
-
         minX = areaCenter.x - areaSize.x / 2f;
         maxX = areaCenter.x + areaSize.x / 2f;
         minZ = areaCenter.y - areaSize.y / 2f;
@@ -30,28 +38,65 @@ public class CameraManager : MonoBehaviour
 
     void Update()
     {
+        if (!IsCameraMovementAllowed())
+            return;
+
         HandleMovement();
         HandleZoom();
+
+        if (!isDragging)
+            ApplyBoundarySnap();
     }
 
-    void HandleMovement()
+    private void ApplyBoundarySnap()
     {
+        Vector3 pos = transform.position;
+
+        float targetX = Mathf.Clamp(pos.x, minX, maxX);
+        float targetZ = Mathf.Clamp(pos.z, minZ, maxZ);
+
+        Vector3 targetPos = new Vector3(targetX, pos.y, targetZ);
+
+        if (Vector3.Distance(pos, targetPos) > 0.01f)
+            transform.position = Vector3.Lerp(transform.position, targetPos, returnSpeed * Time.deltaTime);
+    }
+
+    private bool IsCameraMovementAllowed()
+    {
+        GameState state = GameManager.Instance.GetState();
+        return state == GameState.Tutorial || state == GameState.Gameplay;
+    }
+
+    private void HandleMovement()
+    {
+        //end drag
+        if (Input.GetMouseButtonUp(0))
+            isDragging = false;
+
+        //start drag
         if (!Input.GetMouseButton(0)) return;
         if (Input.GetMouseButtonDown(0))
         {
             dragOrigin = Input.mousePosition;
+            isDragging = true;
             return;
         }
 
-        Vector3 delta = Input.mousePosition - dragOrigin;
-        float scaledDragSpeed = dragSpeed * (transform.position.y / 50f);
-        Vector3 move = new Vector3(-delta.x * scaledDragSpeed * Time.deltaTime, 0, -delta.y * scaledDragSpeed * Time.deltaTime);
+        //during drag
+        if (Input.GetMouseButton(0) && isDragging)
+        {
+            Vector3 delta = Input.mousePosition - dragOrigin;
 
-        transform.Translate(move, Space.World);
-        dragOrigin = Input.mousePosition;
+            //adjust movement speed based on height
+            float heightFactor = transform.position.y / 50f;
+            Vector3 move = new Vector3(-delta.x * dragSpeed * heightFactor * Time.deltaTime, 0, -delta.y * dragSpeed * heightFactor * Time.deltaTime);
+
+            transform.position += move;
+            dragOrigin = Input.mousePosition;
+        }
     }
 
-    void HandleZoom()
+    private void HandleZoom()
     {
         float scroll = Input.GetAxis("Mouse ScrollWheel");
 

@@ -1,6 +1,7 @@
 using Unity.Netcode;
 using System;
 using UnityEngine;
+using System.Threading.Tasks;
 
 public class GameManager : NetworkBehaviour
 {
@@ -48,8 +49,9 @@ public class GameManager : NetworkBehaviour
     public void SetState(GameState newState)
     {
         //only server and offline can set state
-        if (!IsServer && IsSpawned)
+        if (!IsServer)
         {
+            OnGameStateChanged?.Invoke(GetState());
             Debug.LogWarning("only server can set game state");
             if (NetworkManager != null) return;
         }
@@ -58,10 +60,13 @@ public class GameManager : NetworkBehaviour
         OnGameStateChanged?.Invoke(newState);
     }
 
-    public void RequestReturnToLobby()
+    public async void RequestReturnToLobby()
     {
-        NetworkManager.Singleton.Shutdown();
-        SetState(GameState.Lobby);
+        if (IsServer)
+            SetState(GameState.Lobby);
+
+        await Task.Delay(TimeSpan.FromSeconds(0.5));
+        Relay.Instance.Dissconect();
     }
 
     public void RequestRestGame()
