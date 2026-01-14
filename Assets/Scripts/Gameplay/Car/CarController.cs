@@ -203,7 +203,7 @@ public class CarController : NetworkBehaviour
         {
             if (hasCrashed) break;
             TrafficLightState lightState = currentLight.GetCurrentState();
-            Debug.Log($"{name} light state: {lightState} queued: {isQueued}");
+            //Debug.Log($"{name} light state: {lightState} queued: {isQueued}");
 
             //wait when red/yellow
             if (lightState == TrafficLightState.Red || lightState == TrafficLightState.Yellow)

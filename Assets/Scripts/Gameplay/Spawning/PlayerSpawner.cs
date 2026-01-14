@@ -48,12 +48,18 @@ public class PlayerSpawner : NetworkBehaviour
             NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnected;
             NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnected;
         }
+
+        base.OnNetworkSpawn();
     }
 
     private void OnClientConnected(ulong clientId)
     {
         if (!IsServer) return;
+        if (spawnedPlayers.Contains(clientId)) return;
+
         SpawnPlayer(clientId);
+
+        //Debug.Log($"spawing area for player:{clientId}");
     }
 
     private void OnClientDisconnected(ulong clientId)

@@ -224,7 +224,7 @@ GameObject:
   - component: {fileID: 298525904289969596}
   - component: {fileID: 3826603069393619936}
   - component: {fileID: 556658469834598899}
-  - component: {fileID: -4091908200861921906}
+  - component: {fileID: 999026444055595180}
   - component: {fileID: 4857451669809382901}
   - component: {fileID: 1600968542790892852}
   - component: {fileID: 5149088907410365738}
@@ -356,7 +356,7 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 84
   m_CollisionDetection: 0
---- !u!114 &-4091908200861921906
+--- !u!114 &999026444055595180
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -368,12 +368,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GlobalObjectIdHash: 864110324
+  GlobalObjectIdHash: 0
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
   AlwaysReplicateAsRoot: 0
-  SynchronizeTransform: 0
+  SynchronizeTransform: 1
   ActiveSceneSynchronization: 0
   SceneMigrationSynchronization: 1
   SpawnWithObservers: 1

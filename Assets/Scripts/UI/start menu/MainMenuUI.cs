@@ -59,8 +59,8 @@ public class MainMenuUI : MonoBehaviour
 
     public void StartLANBtn()
     {
-        TutorialManager.Instance.DespawnTutorialCars();
         OnStartLANPressed?.Invoke();
+        TutorialManager.Instance.DespawnTutorialCars();
     }
 
     public void JoinLANBtn()
@@ -85,14 +85,6 @@ public class MainMenuUI : MonoBehaviour
     public void DissconnectBtn()
     {
         OnDissconnectPressed?.Invoke();
-
-        readyUpBtn.interactable = false;
-        hostStartGameBtn.interactable = false;
-        hostBackBtn.interactable = false;
-
-        readyUpLANBtn.interactable = false;
-        hostStartGameLANBtn.interactable = false;
-        hostBackLANBtn.interactable = false;
 
         TutorialManager.Instance.ShowTutorial();
 

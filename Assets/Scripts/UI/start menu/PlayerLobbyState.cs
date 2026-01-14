@@ -20,16 +20,7 @@ public class PlayerLobbyState : MonoBehaviour
     private void OnEnable()
     {
         lastAllReadyState = false;
-        if (readyButton != null) readyButton.onClick.AddListener(OnReadyButtonClicked);
-
-        AllPlayersReady += HandleAllPlayersReady;
         HandleAllPlayersReady(false);
-    }
-
-    private void OnDestroy()
-    {
-        if (readyButton != null) readyButton.onClick.RemoveListener(OnReadyButtonClicked);
-        AllPlayersReady -= HandleAllPlayersReady;
     }
 
     private void HandleAllPlayersReady(bool state)
@@ -95,6 +86,7 @@ public class PlayerLobbyState : MonoBehaviour
         {
             AllPlayersReady?.Invoke(allReady);
             lastAllReadyState = allReady;
+            HandleAllPlayersReady(allReady);
         }
     }
 
