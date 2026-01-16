@@ -23,6 +23,8 @@ public class CarWaitUI : NetworkBehaviour
     private NetworkVariable<float> penaltyTimer = new NetworkVariable<float>(0f, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
     private NetworkVariable<bool> isActive = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
+    private GameObject fx;
+
     private void Start()
     {
         waitTimerRootObj.SetActive(false);
@@ -149,7 +151,7 @@ public class CarWaitUI : NetworkBehaviour
     private void SpawnScoreFXClientRpc()
     {
         Vector3 offsetFX = new Vector3(0, 2f, 0);
-        GameObject fx = Instantiate(scoreFX, waitTimerRootObj.transform.position + offsetFX, Quaternion.identity);
+        fx = Instantiate(scoreFX, waitTimerRootObj.transform.position + offsetFX, Quaternion.identity);
         Destroy(fx, fxTime);
     }
 
@@ -185,5 +187,11 @@ public class CarWaitUI : NetworkBehaviour
         ulong ownerId = PlayerSpawner.instance.GetPlayerInQuadrant(quad);
 
         StatTracker.Instance.AddWaitTimeServerRpc(ownerId, currentTime.Value);
+    }
+
+    public void DestroyScoreFX()
+    {
+        if (fx != null)
+            Destroy(fx);
     }
 }

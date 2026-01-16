@@ -11,6 +11,7 @@ public class CarCollisionCheck : MonoBehaviour
     [SerializeField] private GameObject crashFX;
 
     private CarController carController;
+    private CarWaitUI carWaitUI;
     private GameObject crashFXInstance;
 
     private int crashSideIndex = 0;
@@ -18,6 +19,7 @@ public class CarCollisionCheck : MonoBehaviour
     void Start()
     {
         carController = gameObject.GetComponent<CarController>();
+        carWaitUI = gameObject.GetComponentInChildren<CarWaitUI>();
     }
 
     private void OnCollisionEnter(Collision collision)
@@ -90,7 +92,14 @@ public class CarCollisionCheck : MonoBehaviour
 
     private IEnumerator Despawn()
     {
+        if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsConnectedClient)
+            if (!NetworkManager.Singleton.IsServer)
+                yield break;
+
         yield return new WaitForSecondsRealtime(despawnTimer);
+
+        carController.DestroyRearTriggerInstance();
+        carWaitUI.DestroyScoreFX();
 
         Destroy(crashFXInstance);
 

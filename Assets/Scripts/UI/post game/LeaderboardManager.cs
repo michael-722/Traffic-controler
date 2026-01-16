@@ -134,9 +134,8 @@ public class LeaderboardManager : MonoBehaviour
         foreach (int score in scores.Values)
             totalScore += score;
 
-        //Debug.Log($"Leaderboard username: {leaderboardName}, Total Score: {totalScore}");
+        //Debug.Log($"leaderboard username: {leaderboardName} total score: {totalScore}");
 
-        //need to get host user name and total score here <==============================
         await AuthenticationService.Instance.UpdatePlayerNameAsync(leaderboardName);
         await LeaderboardsService.Instance.AddPlayerScoreAsync(leaderboardID, totalScore);
     }

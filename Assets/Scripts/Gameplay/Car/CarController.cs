@@ -46,7 +46,7 @@ public class CarController : NetworkBehaviour
     {
         rb = GetComponent<Rigidbody>();
         carWidth = GetCarWidth();
-        carLength = GetCarLenght();
+        carLength = GetCarLenght();//length isnt consistant - it depends on spawn dir=======================================================
         ROAD_WIDTH = 14f;
 
         //=====================================================================
@@ -119,6 +119,7 @@ public class CarController : NetworkBehaviour
             waitingAtLight = false;
             return;
         }
+        //inherit light trigger
         else rearTriggerInstance = trigger.gameObject;
 
         entryDirection = GetDirectionFromTrigger(trigger.name);
@@ -132,6 +133,7 @@ public class CarController : NetworkBehaviour
             waitingAtLight = false;
             return;
         }
+        
 
         //align car to lane
         Vector3 carPosition = transform.position;
@@ -188,6 +190,22 @@ public class CarController : NetworkBehaviour
         }
 
         DetermineNextDirection();
+
+        if (!rearTriggerActive)
+        {
+            rearTriggerActive = true;
+            GameObject originalTrigger = rearTriggerInstance;
+
+            float offsetDistance = carLength + 0.5f;
+            Vector3 clonePosition = transform.position - transform.forward * offsetDistance;
+            Quaternion cloneRotation = originalTrigger.transform.rotation;
+
+            GameObject newTrigger = Instantiate(originalTrigger, clonePosition, cloneRotation);
+            newTrigger.transform.SetParent(originalTrigger.transform.parent, worldPositionStays: false);
+
+            rearTriggerInstance = newTrigger;
+        }
+
         StartCoroutine(HandleTrafficLight());
     }
 
@@ -208,19 +226,6 @@ public class CarController : NetworkBehaviour
             //wait when red/yellow
             if (lightState == TrafficLightState.Red || lightState == TrafficLightState.Yellow)
             {
-                if (!rearTriggerActive)
-                {
-                    rearTriggerActive = true;
-
-                    Vector3 clonePosition = transform.position - (transform.forward * carLength) - (transform.up * 2);
-                    GameObject originalTrigger = rearTriggerInstance;
-                    
-                    GameObject newTrigger = Instantiate(originalTrigger, clonePosition, originalTrigger.transform.rotation);
-                    
-                    newTrigger.transform.parent = originalTrigger.transform.parent;
-                    
-                    rearTriggerInstance = newTrigger;
-                }
                 yield return null;
                 firstCheck = false;
                 continue;
@@ -434,5 +439,17 @@ public class CarController : NetworkBehaviour
         rb.linearVelocity = Vector3.zero;
 
         if (waitingAtLight) carWaitUI.UpdateWaitTime();
+    }
+
+    public void DestroyRearTriggerInstance()
+    {
+        if (rearTriggerInstance != null)
+        {
+            if (rearTriggerInstance.name.Contains("(Clone)"))
+                Destroy(rearTriggerInstance);
+            
+            rearTriggerInstance = null;
+            rearTriggerActive = false;
+        }
     }
 }

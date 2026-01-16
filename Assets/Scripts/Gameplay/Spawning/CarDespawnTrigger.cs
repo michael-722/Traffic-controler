@@ -8,6 +8,10 @@ public class CarDespawnTrigger : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
+        if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsConnectedClient)
+            if (!NetworkManager.Singleton.IsServer)
+                return;
+
         if (other == null) return;
 
         if (other.CompareTag("Car"))
