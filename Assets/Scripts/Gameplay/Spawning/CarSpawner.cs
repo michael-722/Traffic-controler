@@ -15,6 +15,8 @@ public class CarSpawner : NetworkBehaviour
     private bool canSpawn = false;
     private float spawnTimer;
 
+    Dictionary<ulong, List<Transform>> groupedSpawnPoints = new Dictionary<ulong, List<Transform>>();
+
     private List<Transform> spawnPoints = new();
     private NetworkVariable<List<ulong>> spawnedCars = new NetworkVariable<List<ulong>>(
         new List<ulong>(),
@@ -56,12 +58,23 @@ public class CarSpawner : NetworkBehaviour
     }
     private void SpawnCar()
     {
-        Transform sp = spawnPoints[UnityEngine.Random.Range(0, spawnPoints.Count)];
-        GameObject go = Instantiate(carPrefab, sp.position, sp.rotation);
-        NetworkObject netObj = go.GetComponent<NetworkObject>();
-        netObj.Spawn(true);
+        foreach (var playerArea in groupedSpawnPoints)
+        {
+            List<Transform> spawnList = playerArea.Value;
+            if (spawnList == null || spawnList.Count == 0)
+                continue;
 
-        spawnedCars.Value.Add(netObj.NetworkObjectId);
+            Transform sp = spawnList[UnityEngine.Random.Range(0, spawnList.Count)];
+            GameObject go = Instantiate(carPrefab, sp.position, sp.rotation);
+            
+            NetworkObject netObj = go.GetComponent<NetworkObject>();
+            netObj.Spawn(true);
+
+            spawnedCars.Value.Add(netObj.NetworkObjectId);
+
+            if (spawnedCars.Value.Count >= GetMaxCars())
+                break;
+        }
     }
 
     public void DespawnCar(NetworkObject car)
@@ -107,11 +120,37 @@ public class CarSpawner : NetworkBehaviour
         if (!IsServer) return;
         canSpawn = false;
     }
+
     private void RescanSpawnPoints()
     {
         spawnPoints.Clear();
+
         GameObject[] taggedObjs = GameObject.FindGameObjectsWithTag(spawnTag);
-        foreach (GameObject obj in taggedObjs) { spawnPoints.Add(obj.transform); }
+        foreach (GameObject obj in taggedObjs)
+        {
+            //find root objs netObj 
+            Transform current = obj.transform;
+            NetworkObject rootNetObj = null;
+            while (current != null)
+            {
+                rootNetObj = current.GetComponent<NetworkObject>();
+                if (rootNetObj != null)
+                    break;
+                current = current.parent;
+            }
+
+            //group spawn points by parent netObj id
+            if (rootNetObj != null)
+            {
+                ulong parentId = rootNetObj.NetworkObjectId;
+
+                if (!groupedSpawnPoints.ContainsKey(parentId))
+                    groupedSpawnPoints[parentId] = new List<Transform>();
+
+                groupedSpawnPoints[parentId].Add(obj.transform);
+            }
+            else Debug.LogWarning("spawn point parent has no netObj");
+        }
     }
 
     public void ClearAllCars()
