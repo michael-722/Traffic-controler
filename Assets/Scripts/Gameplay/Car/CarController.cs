@@ -8,6 +8,7 @@ public class CarController : NetworkBehaviour
     #region VARS
     [SerializeField] private float driveSpeed = 7.5f;
     [SerializeField] private float turnSpeed = 2.0f;
+    [Range(2,15)][SerializeField] private float queDist = 2.0f;
 
     [SerializeField] private BlinkerController leftBlinkers;
     [SerializeField] private BlinkerController rightBlinkers;
@@ -34,6 +35,8 @@ public class CarController : NetworkBehaviour
     private GameObject rearTriggerInstance = null;
     private bool rearTriggerActive = false;
 
+    private GameObject originalTrigger;
+
     private bool directionChosen = false;
     private bool isQueued = false;
 
@@ -46,8 +49,10 @@ public class CarController : NetworkBehaviour
     {
         rb = GetComponent<Rigidbody>();
         carWidth = GetCarWidth();
-        carLength = GetCarLenght();//length isnt consistant - it depends on spawn dir=======================================================
+        carLength = GetCarLenght();
         ROAD_WIDTH = 14f;
+
+        Debug.Log($"car length: {carLength}");
 
         //=====================================================================
         //only have enabled if roads need re calabrating
@@ -77,7 +82,14 @@ public class CarController : NetworkBehaviour
     private float GetCarLenght()
     {
         Collider col = GetComponentInChildren<Collider>();
-        if (col != null) return col.bounds.size.z;
+        if (col != null)
+        {
+            //get local size - account for rotation/scaling on spawn
+            Vector3 localSize = col.transform.InverseTransformVector(col.bounds.size);
+            Vector3 lossyScale = col.transform.lossyScale;
+            float scaledLength = Mathf.Abs(localSize.z * lossyScale.z);
+            return scaledLength;
+        }
 
         Debug.LogWarning(name + " car has no collider");
         return 0f;
@@ -94,13 +106,25 @@ public class CarController : NetworkBehaviour
 
     private void FixedUpdate()
     {
+        if (!IsServer && IsSpawned) return;
         if (hasCrashed) return;
-        if (!waitingAtLight && !isMoving)
+
+        //cars infront had a crash
+        if (waitingAtLight && originalTrigger == null)
         {
-            rb.MovePosition(transform.position + transform.forward * driveSpeed * Time.fixedDeltaTime);
+            waitingAtLight = false;
+            rearTriggerActive = false;
+            Destroy(rearTriggerInstance);
+            rearTriggerInstance = null;
+            carWaitUI.SetState(false);
         }
+
+        //normal driving
+        if (!waitingAtLight && !isMoving)
+            rb.MovePosition(transform.position + transform.forward * driveSpeed * Time.fixedDeltaTime);
     }
 
+    //hit a junction trigger 
     private void OnTriggerEnter(Collider trigger)
     {
         if (!IsServer && IsSpawned) return;
@@ -150,6 +174,8 @@ public class CarController : NetworkBehaviour
         //flipped bc lights are roted 180
         Vector3 expectedLightDir = -GetWorldDirection(entryDirection);
 
+        bool foundLight = false;
+
         foreach (TrafficLightController light in lights)
         {
             float dot = Vector3.Dot(light.transform.forward.normalized, expectedLightDir.normalized);
@@ -160,8 +186,9 @@ public class CarController : NetworkBehaviour
             * dot -1 = opposite direction
             * dot 0 = perpendicular
             * */
-            if (dot > 0.75f)
+            if (dot > 0.9f)
             {
+                foundLight = true;
                 currentLight = light;
                 break;
             }
@@ -189,16 +216,18 @@ public class CarController : NetworkBehaviour
             return;
         }
 
+        if (!foundLight) return;
+
         DetermineNextDirection();
 
         if (!rearTriggerActive)
         {
             rearTriggerActive = true;
-            GameObject originalTrigger = rearTriggerInstance;
+            originalTrigger = rearTriggerInstance;
 
-            float offsetDistance = carLength + 0.5f;
-            Vector3 clonePosition = transform.position - transform.forward * offsetDistance;
+            float offsetDistance = carLength + queDist;
             Quaternion cloneRotation = originalTrigger.transform.rotation;
+            Vector3 clonePosition = originalTrigger.transform.position - transform.forward * offsetDistance;
 
             GameObject newTrigger = Instantiate(originalTrigger, clonePosition, cloneRotation);
             newTrigger.transform.SetParent(originalTrigger.transform.parent, worldPositionStays: false);
@@ -207,6 +236,8 @@ public class CarController : NetworkBehaviour
         }
 
         StartCoroutine(HandleTrafficLight());
+
+        foundLight = false;
     }
 
     private IEnumerator HandleTrafficLight()
