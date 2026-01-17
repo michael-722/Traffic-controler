@@ -6,6 +6,7 @@ using Unity.Netcode;
 public class StatDisplay : MonoBehaviour
 {
     [SerializeField] private GameObject statsRootObj;
+    [SerializeField] private GameObject waitingRootObj;
     [SerializeField] private List<Transform> playerStatDisplay = new List<Transform>();
 
     private bool isListenerAdded = false;
@@ -50,8 +51,9 @@ public class StatDisplay : MonoBehaviour
 
         if (state)
         {
+            waitingRootObj.SetActive(false);
             CancelInvoke(nameof(UpdateStats));
-            Invoke(nameof(UpdateStats), 0.5f);
+            Invoke(nameof(UpdateStats), 0.16f);//3x 50ms allow network data to sync
         }
         else CancelInvoke(nameof(UpdateStats));
     }

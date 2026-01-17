@@ -102,9 +102,6 @@ public class PlayerLobbyState : MonoBehaviour
             if (readyState != null)
                 readyState.ToggleReady();
         }
-        else
-        {
-            Debug.LogError("local player obj not found");
-        }
+        else Debug.LogWarning("local player obj not found - player probably not spawned yet");
     }
 }

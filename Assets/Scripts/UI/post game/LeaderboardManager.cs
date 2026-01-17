@@ -111,7 +111,11 @@ public class LeaderboardManager : MonoBehaviour
 
     public async void SubmitScore()
     {
-        if (!NetworkManager.Singleton.IsServer) return;
+        if (!NetworkManager.Singleton.IsServer)
+        {
+            refreshLeaderboard();
+            return;
+        }
 
         //get initals for all players - leaderabord name
         Dictionary<ulong, string> usernames = PlayerManager.Instance.GetAllPlayerUsernames();

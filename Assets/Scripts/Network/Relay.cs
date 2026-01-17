@@ -9,6 +9,7 @@ using Unity.Services.Core;
 using Unity.Services.Relay;
 using Unity.Services.Relay.Models;
 using UnityEngine;
+using System.Collections;
 
 //to cal ping save time msg sent and then time recieve response then t1 - t0 gives ping 
 
@@ -138,9 +139,23 @@ public class Relay : NetworkBehaviour
     {
         //Debug.Log("dissconnecting");
         if (NetworkManager.Singleton.IsServer)
-            DisconnectAllPlayersServerRpc();
+        {
+            Debug.Log("server shutting down, disconnecting all players");
+            DisconnectAllPlayers();
+        }
         else
+        {
+            Debug.Log("client shutting down");
             NetworkManager.Singleton.Shutdown();
+        }
+
+        StartCoroutine(WaitForShutdownAndReset());
+    }
+
+    private IEnumerator WaitForShutdownAndReset()
+    {
+        while (NetworkManager.Singleton != null && (NetworkManager.Singleton.IsServer || NetworkManager.Singleton.IsClient))
+            yield return null;
 
         PlayerManager.Instance.ResetAllPlayersScore();
         WinLoseConditions.Instance.ResetConditions();
@@ -188,8 +203,7 @@ public class Relay : NetworkBehaviour
         dissconnectMsg.Invoke("Host has disconnected\nPlease leave game");
     }
 
-    [ServerRpc]
-    public void DisconnectAllPlayersServerRpc()
+    public void DisconnectAllPlayers()
     {
         //Debug.Log("dissconnecting all players");
         for (int i = connectedPlayerIds.Count - 1; i >= 1; i--)

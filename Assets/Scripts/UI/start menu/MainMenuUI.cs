@@ -5,12 +5,12 @@ using UnityEngine.UI;
 
 public class MainMenuUI : MonoBehaviour
 {
-    public static event Action OnStartHostPressed;
-    public static event Action OnStartLANPressed;
-    public static event Action<string> OnJoinLANPressed;
-    public static event Action OnStartGamePressed;
-    public static event Action<string> OnStartClientPressed;
-    public static event Action OnDissconnectPressed;
+    public event Action OnStartHostPressed;
+    public event Action OnStartLANPressed;
+    public event Action<string> OnJoinLANPressed;
+    public event Action OnStartGamePressed;
+    public event Action<string> OnStartClientPressed;
+    public event Action OnDissconnectPressed;
 
     [SerializeField] private TMP_InputField joinCodeInput;
     [SerializeField] private TMP_InputField ipInput;
@@ -49,6 +49,16 @@ public class MainMenuUI : MonoBehaviour
         readyUpLANBtn.interactable = false;
         hostStartGameLANBtn.interactable = false;
         hostBackLANBtn.interactable = false;
+    }
+
+    private void OnDisable()
+    {
+        OnStartHostPressed -= Relay.Instance.CreateHost;
+        OnStartClientPressed -= Relay.Instance.JoinGame;
+        OnDissconnectPressed -= Relay.Instance.Dissconect;
+        OnStartLANPressed -= Relay.Instance.CreateLAN;
+        OnJoinLANPressed -= Relay.Instance.JoinLAN;
+        OnStartGamePressed -= () => GameManager.Instance.RequestStartGame();
     }
 
     public void StartHostBtn()
@@ -109,7 +119,7 @@ public class MainMenuUI : MonoBehaviour
         hostStartGameLANBtn.interactable = false;
         hostBackLANBtn.interactable = false;
 
-        UpdateConnectedPlayerCount(0);
+        UpdateConnectedPlayerCount(1);
         joinedWaiting.color = Color.white;
     }
 
