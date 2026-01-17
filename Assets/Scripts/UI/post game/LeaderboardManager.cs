@@ -138,6 +138,8 @@ public class LeaderboardManager : MonoBehaviour
 
         await AuthenticationService.Instance.UpdatePlayerNameAsync(leaderboardName);
         await LeaderboardsService.Instance.AddPlayerScoreAsync(leaderboardID, totalScore);
+
+        refreshLeaderboard();
     }
 
     public async void ResetLeaderboardSession()
