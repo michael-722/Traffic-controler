@@ -8,7 +8,7 @@ public class CarController : NetworkBehaviour
     #region VARS
     [SerializeField] private float driveSpeed = 7.5f;
     [SerializeField] private float turnSpeed = 2.0f;
-    [Range(2,15)][SerializeField] private float queDist = 2.0f;
+    [Range(0,15)][SerializeField] private float queDist = 2.0f;
 
     [SerializeField] private BlinkerController leftBlinkers;
     [SerializeField] private BlinkerController rightBlinkers;
@@ -51,8 +51,6 @@ public class CarController : NetworkBehaviour
         carWidth = GetCarWidth();
         carLength = GetCarLenght();
         ROAD_WIDTH = 14f;
-
-        Debug.Log($"car length: {carLength}");
 
         //=====================================================================
         //only have enabled if roads need re calabrating
@@ -227,13 +225,18 @@ public class CarController : NetworkBehaviour
 
             float offsetDistance = carLength + queDist;
             Quaternion cloneRotation = originalTrigger.transform.rotation;
-            Vector3 clonePosition = originalTrigger.transform.position - transform.forward * offsetDistance;
+
+            Vector3 behindDirection = GetWorldDirection(entryDirection);
+            Vector3 clonePosition = transform.position + behindDirection * offsetDistance;
+            clonePosition.y = originalTrigger.transform.position.y;
 
             GameObject newTrigger = Instantiate(originalTrigger, clonePosition, cloneRotation);
-            newTrigger.transform.SetParent(originalTrigger.transform.parent, worldPositionStays: false);
+            newTrigger.transform.SetParent(originalTrigger.transform.parent);
 
             rearTriggerInstance = newTrigger;
         }
+
+
 
         StartCoroutine(HandleTrafficLight());
 
