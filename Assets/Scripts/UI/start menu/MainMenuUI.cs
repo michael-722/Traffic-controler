@@ -84,6 +84,16 @@ public class MainMenuUI : MonoBehaviour
         StartCoroutine(StartLANCourutine());
     }
 
+    public void JoinLANBtn()
+    {
+        StartCoroutine(JoinLANCourutine());
+    }
+
+    public void StartClientBtn()
+    {
+        StartCoroutine(StartClientCourutine());
+    }
+
     private IEnumerator StartHostCourutine()
     {
         TutorialManager.Instance.SetTutorialCarSpawning(false);
@@ -104,13 +114,28 @@ public class MainMenuUI : MonoBehaviour
         OnStartLANPressed?.Invoke();
     }
 
-    public void JoinLANBtn()
+    private IEnumerator JoinLANCourutine()
     {
+        TutorialManager.Instance.SetTutorialCarSpawning(false);
+        TutorialManager.Instance.DespawnTutorialCars();
+        TutorialManager.Instance.SetTutorialVisibilty(false);
+
+        yield return null;
+
         OnJoinLANPressed?.Invoke(ipInput.text);
 
-        TutorialManager.Instance.DespawnTutorialCars();
+        ResetUIText();
+    }
+
+    private IEnumerator StartClientCourutine()
+    {
         TutorialManager.Instance.SetTutorialCarSpawning(false);
+        TutorialManager.Instance.DespawnTutorialCars();
         TutorialManager.Instance.SetTutorialVisibilty(false);
+
+        yield return null;
+
+        OnStartClientPressed?.Invoke(joinCodeInput.text.Trim());
 
         ResetUIText();
     }
@@ -118,13 +143,6 @@ public class MainMenuUI : MonoBehaviour
     public void StartGameBtn()
     {
         OnStartGamePressed?.Invoke();
-    }
-
-    public void StartClientBtn()
-    {
-        OnStartClientPressed?.Invoke(joinCodeInput.text.Trim());
-        TutorialManager.Instance.SetTutorialVisibilty(false);
-        ResetUIText();
     }
 
     public void DissconnectBtn()

@@ -12,6 +12,7 @@ public class PlayerLobbyState : MonoBehaviour
 
     [SerializeField] private Button readyButton;
     [SerializeField] private TMP_Text playerText;
+    [SerializeField] private RectTransform bgRect;
     [SerializeField] private float updateInterval = 0.5f;
 
     private float lastUpdateTime;
@@ -69,6 +70,7 @@ public class PlayerLobbyState : MonoBehaviour
             {
                 string readyText = isReady ? "<color=green>Ready</color>" : "<color=red>Not Ready</color>";
                 sb.AppendLine($"{playerName} - {readyText}");
+
                 if (!isReady)
                     allReady = false;
             }
@@ -78,9 +80,15 @@ public class PlayerLobbyState : MonoBehaviour
                 sb.AppendLine($"{playerName} - <color=red>Not Ready</color>");
                 allReady = false;
             }
+
+            bgRect.sizeDelta = new Vector2(bgRect.sizeDelta.x, 50f + 43f * (usernames.Count - 1));
         }
 
         playerText.text = sb.ToString();
+
+        float dynamicWidth = Mathf.Max(300f, playerText.preferredWidth + 40f);
+        float dynamicHeight = 50f + (43f * Mathf.Max(0, usernames.Count - 1));
+        bgRect.sizeDelta = new Vector2(dynamicWidth, dynamicHeight);
 
         if (lastAllReadyState != allReady)
         {
