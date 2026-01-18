@@ -60,12 +60,16 @@ public class TutorialManager : MonoBehaviour
     {
         despawnCars();
     }
-
-    public void HideTutorial()
+    
+    public void SetTutorialCarSpawning(bool state) 
     {
-        TutorialLayout.SetActive(false);
-        disableCarSpawning();
-        despawnCars();
+        if (state) enableCarSpawning();
+        else disableCarSpawning();
+    }
+
+    public void SetTutorialVisibilty(bool state)
+    {
+        TutorialLayout.SetActive(state);
     }
 
     public void ShowTutorial()
@@ -154,8 +158,11 @@ public class TutorialManager : MonoBehaviour
         {
             int index = UnityEngine.Random.Range(0, carSpawnPoints.Count);
             GameObject car = Instantiate(carPrefab, carSpawnPoints[index].position, carSpawnPoints[index].rotation);
-            car.gameObject.GetComponent<NetworkObject>().enabled = false;
+            
+            if (car.TryGetComponent<NetworkObject>(out var netObj))
+                netObj.CheckObjectVisibility = (id) => false;//disable network fucntionailty for tutorial cars
             spawnedCars.Add(car);
+
             yield return new WaitForSeconds(spawnInterval);
         }
     }
@@ -165,9 +172,7 @@ public class TutorialManager : MonoBehaviour
         for (int i = spawnedCars.Count - 1; i >= 0; i--)
         {
             if (spawnedCars[i] != null)
-            {
-                Destroy(spawnedCars[i]);
-            }
+                DestroyImmediate(spawnedCars[i]);
             spawnedCars.RemoveAt(i);
         }
     }

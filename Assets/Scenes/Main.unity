@@ -2454,6 +2454,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7873286072131964796, guid: d8af4f945807dd544a08bbd7bfced3ee, type: 3}
+      propertyPath: carPrefab
+      value: 
+      objectReference: {fileID: 2518101569010541112, guid: db18c1cc04394d44d8a19b5749060893, type: 3}
+    - target: {fileID: 7873286072131964796, guid: d8af4f945807dd544a08bbd7bfced3ee, type: 3}
       propertyPath: carSpawnPoints.Array.size
       value: 3
       objectReference: {fileID: 0}

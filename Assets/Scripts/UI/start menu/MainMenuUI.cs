@@ -2,6 +2,7 @@ using UnityEngine;
 using System;
 using TMPro;
 using UnityEngine.UI;
+using System.Collections;
 
 public class MainMenuUI : MonoBehaviour
 {
@@ -75,20 +76,42 @@ public class MainMenuUI : MonoBehaviour
 
     public void StartHostBtn()
     {
-        OnStartHostPressed?.Invoke();
-        TutorialManager.Instance.DespawnTutorialCars();
+        StartCoroutine(StartHostCourutine());
     }
 
     public void StartLANBtn()
     {
-        OnStartLANPressed?.Invoke();
+        StartCoroutine(StartLANCourutine());
+    }
+
+    private IEnumerator StartHostCourutine()
+    {
+        TutorialManager.Instance.SetTutorialCarSpawning(false);
         TutorialManager.Instance.DespawnTutorialCars();
+
+        yield return new WaitForEndOfFrame();
+
+        OnStartHostPressed?.Invoke();
+    }
+
+    private IEnumerator StartLANCourutine()
+    {
+        TutorialManager.Instance.SetTutorialCarSpawning(false);
+        TutorialManager.Instance.DespawnTutorialCars();
+
+        yield return new WaitForEndOfFrame();
+
+        OnStartLANPressed?.Invoke();
     }
 
     public void JoinLANBtn()
     {
         OnJoinLANPressed?.Invoke(ipInput.text);
-        TutorialManager.Instance.HideTutorial();
+
+        TutorialManager.Instance.DespawnTutorialCars();
+        TutorialManager.Instance.SetTutorialCarSpawning(false);
+        TutorialManager.Instance.SetTutorialVisibilty(false);
+
         ResetUIText();
     }
 
@@ -100,7 +123,7 @@ public class MainMenuUI : MonoBehaviour
     public void StartClientBtn()
     {
         OnStartClientPressed?.Invoke(joinCodeInput.text.Trim());
-        TutorialManager.Instance.HideTutorial();
+        TutorialManager.Instance.SetTutorialVisibilty(false);
         ResetUIText();
     }
 
@@ -141,7 +164,8 @@ public class MainMenuUI : MonoBehaviour
 
         hostBackBtn.interactable = true;
         readyUpBtn.interactable = true;
-        TutorialManager.Instance.HideTutorial();
+
+        TutorialManager.Instance.SetTutorialVisibilty(false);
     }
 
     public void DisplayIpAdress(string ip)
@@ -150,7 +174,7 @@ public class MainMenuUI : MonoBehaviour
         hostBackLANBtn.interactable = true;
         readyUpLANBtn.interactable = true;
 
-        TutorialManager.Instance.HideTutorial();
+        TutorialManager.Instance.SetTutorialVisibilty(false);
     }
 
     public void UpdateConnectedPlayerCount(int num)
@@ -210,7 +234,7 @@ public class MainMenuUI : MonoBehaviour
     public void showOnlineHostingUI()
     {
         if (joinCodeDisplay.text == "Generating code...") TutorialManager.Instance.ShowTutorial();
-        else TutorialManager.Instance.HideTutorial();
+        else TutorialManager.Instance.SetTutorialVisibilty(false);
 
         hostingUIObj.SetActive(true);
     }

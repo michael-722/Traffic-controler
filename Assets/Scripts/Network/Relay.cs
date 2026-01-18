@@ -149,15 +149,9 @@ public class Relay : NetworkBehaviour
     {
         //Debug.Log("dissconnecting");
         if (NetworkManager.Singleton.IsHost)
-        {
-            Debug.Log("server shutting down, disconnecting all players");
             DisconnectAllPlayers();
-        }
         else
-        {
-            Debug.Log("client shutting down");
             NetworkManager.Singleton.Shutdown();
-        }
 
         StartCoroutine(WaitForShutdownAndReset());
     }
