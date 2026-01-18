@@ -33,14 +33,9 @@ public class MainMenuUI : MonoBehaviour
     [SerializeField] private GameObject LANHostingUIObj;
     [SerializeField] private GameObject LANJoinedUIObj;
 
-    private void Start()
+    private void OnEnable()
     {
-        OnStartHostPressed += Relay.Instance.CreateHost;
-        OnStartClientPressed += Relay.Instance.JoinGame;
-        OnDissconnectPressed += Relay.Instance.Dissconect;
-        OnStartLANPressed += Relay.Instance.CreateLAN;
-        OnJoinLANPressed += Relay.Instance.JoinLAN;
-        OnStartGamePressed += () => GameManager.Instance.RequestStartGame();
+        EnableListeners();
 
         readyUpBtn.interactable = false;
         hostStartGameBtn.interactable = false;
@@ -53,13 +48,30 @@ public class MainMenuUI : MonoBehaviour
 
     private void OnDisable()
     {
+        DisableListeners();
+    }
+
+    private void EnableListeners()
+    {
+        OnStartHostPressed += Relay.Instance.CreateHost;
+        OnStartClientPressed += Relay.Instance.JoinGame;
+        OnDissconnectPressed += Relay.Instance.Dissconect;
+        OnStartLANPressed += Relay.Instance.CreateLAN;
+        OnJoinLANPressed += Relay.Instance.JoinLAN;
+        OnStartGamePressed += HandleStartGame;
+    }
+
+    private void DisableListeners()
+    {
         OnStartHostPressed -= Relay.Instance.CreateHost;
         OnStartClientPressed -= Relay.Instance.JoinGame;
         OnDissconnectPressed -= Relay.Instance.Dissconect;
         OnStartLANPressed -= Relay.Instance.CreateLAN;
         OnJoinLANPressed -= Relay.Instance.JoinLAN;
-        OnStartGamePressed -= () => GameManager.Instance.RequestStartGame();
+        OnStartGamePressed -= HandleStartGame;
     }
+
+    private void HandleStartGame() => GameManager.Instance.RequestStartGame();
 
     public void StartHostBtn()
     {
@@ -152,7 +164,7 @@ public class MainMenuUI : MonoBehaviour
         joinedWaiting.text = msg;
         joinedWaiting.color = Color.red;
 
-        Relay.Instance.Dissconect();
+        //Relay.Instance.Dissconect();
         TutorialManager.Instance.ShowTutorial();
         Camera.main.transform.position = new Vector3(0f, 80f, 0f);
 

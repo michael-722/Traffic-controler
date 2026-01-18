@@ -66,6 +66,16 @@ public class Relay : NetworkBehaviour
         transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
     }
 
+    private void OnDisable()
+    {
+        var ui = UIManager.Instance.GetMenuUI();
+
+        joinCodeCreated -= ui.DisplayJoinCode;
+        connectedPlayerCountChange -= ui.UpdateConnectedPlayerCount;
+        dissconnectMsg -= ui.UpdateJoinedWaitingText;
+        ipAddressFetched -= ui.DisplayIpAdress;
+    }
+
     public async void CreateHost()
     {
         try
@@ -138,7 +148,7 @@ public class Relay : NetworkBehaviour
     public void Dissconect()
     {
         //Debug.Log("dissconnecting");
-        if (NetworkManager.Singleton.IsServer)
+        if (NetworkManager.Singleton.IsHost)
         {
             Debug.Log("server shutting down, disconnecting all players");
             DisconnectAllPlayers();
