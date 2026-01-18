@@ -99,16 +99,20 @@ public class GameManager : NetworkBehaviour
             PlayerManager.Instance.ResetAllPlayersScore();
             WinLoseConditions.Instance.ResetConditions();
 
-            //need to differentiate between online and LAN
-            ui.showOnlineHostingUI();
+            if (Relay.Instance.IsUsingRelay())
+                ui.showOnlineHostingUI();
+            else 
+                ui.showLANHostingUI();
 
-            SetState(GameState.Lobby);
+                SetState(GameState.Lobby);
             OnGameStateChanged?.Invoke(GameState.Lobby);
         }
         else
         {
-            //need to differentiate between online and LAN
-            ui.showOnlineJoinedUI();
+            if (Relay.Instance.IsUsingRelay())
+                ui.showOnlineJoinedUI();
+            else
+                ui.showLANJoinedUI();
         }
     }
 }

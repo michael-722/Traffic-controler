@@ -281,4 +281,17 @@ public class Relay : NetworkBehaviour
         IPAddress ipAddr;
         return IPAddress.TryParse(ip, out ipAddr);
     }
+
+    public bool IsUsingRelay()
+    {
+        Debug.Log("checking if using relay transport");
+
+        if (NetworkManager.Singleton != null && NetworkManager.Singleton.NetworkConfig.NetworkTransport is UnityTransport transport)
+        {
+            Debug.Log($"current transport protocol: {transport.Protocol}");
+            return transport.Protocol == UnityTransport.ProtocolType.RelayUnityTransport;
+        }
+        else
+            return false;
+    }
 }
