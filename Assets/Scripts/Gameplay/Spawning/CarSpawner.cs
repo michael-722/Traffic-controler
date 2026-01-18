@@ -65,6 +65,7 @@ public class CarSpawner : NetworkBehaviour
 
     private void Update()
     {
+        if (!NetworkManager.Singleton.IsListening) return;
         if (!canSpawn || !IsServer) return;
 
         spawnTimer += Time.deltaTime;

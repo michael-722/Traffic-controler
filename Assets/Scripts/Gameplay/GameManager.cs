@@ -101,6 +101,7 @@ public class GameManager : NetworkBehaviour
 
             //need to differentiate between online and LAN
             ui.showOnlineHostingUI();
+
             SetState(GameState.Lobby);
             OnGameStateChanged?.Invoke(GameState.Lobby);
         }

@@ -45,14 +45,6 @@ public class MainMenuUI : MonoBehaviour
     {
         DisableListeners();
         EnableListeners();
-
-        readyUpBtn.interactable = false;
-        hostStartGameBtn.interactable = false;
-        hostBackBtn.interactable = false;
-
-        readyUpLANBtn.interactable = false;
-        hostStartGameLANBtn.interactable = false;
-        hostBackLANBtn.interactable = false;
     }
 
     private void OnDisable()
@@ -84,11 +76,19 @@ public class MainMenuUI : MonoBehaviour
 
     public void StartHostBtn()
     {
+        readyUpBtn.interactable = false;
+        hostStartGameBtn.interactable = false;
+        hostBackBtn.interactable = false;
+
         StartCoroutine(StartHostCourutine());
     }
 
     public void StartLANBtn()
     {
+        readyUpLANBtn.interactable = false;
+        hostStartGameLANBtn.interactable = false;
+        hostBackLANBtn.interactable = false;
+
         StartCoroutine(StartLANCourutine());
     }
 
@@ -263,6 +263,9 @@ public class MainMenuUI : MonoBehaviour
         else TutorialManager.Instance.SetTutorialVisibilty(false);
 
         hostingUIObj.SetActive(true);
+        hostBackBtn.interactable = true;
+        readyUpBtn.interactable = true;
+        hostBackBtn.interactable = true;
     }
 
     public void showOnlineJoinedUI()

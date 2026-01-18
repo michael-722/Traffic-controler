@@ -111,6 +111,16 @@ public class LeaderboardManager : MonoBehaviour
 
     public async void SubmitScore()
     {
+        if (!AuthenticationService.Instance.IsSignedIn)
+        {
+            await TrySignIn();
+            if (!AuthenticationService.Instance.IsSignedIn)
+            {
+                Debug.LogWarning("unable to sign in to leaderboards - cannot submit score");
+                return;
+            }
+        }
+
         if (!NetworkManager.Singleton.IsServer)
         {
             refreshLeaderboard();
