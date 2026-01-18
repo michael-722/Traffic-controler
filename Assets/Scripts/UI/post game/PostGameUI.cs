@@ -4,6 +4,7 @@ public class  PostGameUI : MonoBehaviour
 {
     public void Leavepressed()
     {
+        Relay.Instance.Dissconect();
         GameManager.Instance.RequestReturnToLobby();
     }
 

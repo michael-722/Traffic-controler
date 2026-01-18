@@ -62,11 +62,27 @@ public class GameManager : NetworkBehaviour
 
     public async void RequestReturnToLobby()
     {
-        if (IsServer)
-            SetState(GameState.Lobby);
-
         await Task.Delay(TimeSpan.FromSeconds(0.5));
-        Relay.Instance.Dissconect();
+
+        SetState(GameState.Lobby);
+        OnGameStateChanged?.Invoke(GameState.Lobby);
+
+        MainMenuUI ui = UIManager.Instance.GetMenuUI();
+        ui.ShowMenuUI();
+
+        CameraManager.Instance.ResetCameraPosition();
+        TutorialManager.Instance.ShowTutorial();
+    }
+
+    public async void RequestClientReturnToLobby()
+    {
+        await Task.Delay(TimeSpan.FromSeconds(0.5));
+
+        SetState(GameState.Lobby);
+        OnGameStateChanged?.Invoke(GameState.Lobby);
+
+        CameraManager.Instance.ResetCameraPosition();
+        TutorialManager.Instance.ShowTutorial();
     }
 
     public void RequestRestGame()
@@ -86,6 +102,7 @@ public class GameManager : NetworkBehaviour
             //need to differentiate between online and LAN
             ui.showOnlineHostingUI();
             SetState(GameState.Lobby);
+            OnGameStateChanged?.Invoke(GameState.Lobby);
         }
         else
         {

@@ -25,8 +25,6 @@ public class Relay : NetworkBehaviour
     private UnityTransport transport;
     private List<ulong> connectedPlayerIds = new List<ulong>();
 
-    private ulong serverID;
-
     private async void Awake()
     {
         if (Instance == null)
@@ -49,7 +47,7 @@ public class Relay : NetworkBehaviour
         }
     }
 
-    private void Start()
+    private void OnEnable()
     {
         NetworkManager.Singleton.OnClientConnectedCallback += Connection;
         NetworkManager.Singleton.OnClientDisconnectCallback += Dissconnection;
@@ -60,20 +58,27 @@ public class Relay : NetworkBehaviour
         connectedPlayerCountChange += ui.UpdateConnectedPlayerCount;
         dissconnectMsg += ui.UpdateJoinedWaitingText;
         ipAddressFetched += ui.DisplayIpAdress;
-
-        //NetworkManager.Singleton.OnTransportFailure += ConnectionLost;
-
-        transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
     }
 
     private void OnDisable()
     {
+        if (NetworkManager.Singleton != null)
+        {
+            NetworkManager.Singleton.OnClientConnectedCallback -= Connection;
+            NetworkManager.Singleton.OnClientDisconnectCallback -= Dissconnection;
+        }
         var ui = UIManager.Instance.GetMenuUI();
 
         joinCodeCreated -= ui.DisplayJoinCode;
         connectedPlayerCountChange -= ui.UpdateConnectedPlayerCount;
         dissconnectMsg -= ui.UpdateJoinedWaitingText;
         ipAddressFetched -= ui.DisplayIpAdress;
+    }
+
+
+    private void Start()
+    {
+        transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
     }
 
     public async void CreateHost()
@@ -96,7 +101,6 @@ public class Relay : NetworkBehaviour
                 allocation.ConnectionData);
 
             NetworkManager.Singleton.StartHost();
-            serverID = NetworkManager.ServerClientId;
         }
         catch (Exception e)
         {
@@ -106,7 +110,6 @@ public class Relay : NetworkBehaviour
 
     public async void JoinGame(string joinCode)
     {
-        //Debug.Log("created client");
         try
         {
             JoinAllocation allocation = await RelayService.Instance.JoinAllocationAsync(joinCode);
@@ -147,13 +150,48 @@ public class Relay : NetworkBehaviour
 
     public void Dissconect()
     {
-        //Debug.Log("dissconnecting");
+        Debug.Log("dissconnecting from game");
         if (NetworkManager.Singleton.IsHost)
-            DisconnectAllPlayers();
+        {
+            Debug.Log($"Local id: {NetworkManager.Singleton.LocalClient.ClientId} - disconnecting all players");
+            DissconnectAllPlayers();
+        }
         else
-            NetworkManager.Singleton.Shutdown();
+        {
+            Debug.Log($"Local id: {NetworkManager.Singleton.LocalClient.ClientId} - disconnecting itself");
+            DisssconnectPlayerServerRpc(NetworkManager.Singleton.LocalClient.ClientId);
+        }
 
         StartCoroutine(WaitForShutdownAndReset());
+    }
+
+    private void DissconnectAllPlayers()
+    {
+        //Debug.Log("Disconnecting all players from server. Count: " + NetworkManager.Singleton.ConnectedClientsList.Count);
+        if (NetworkManager.Singleton.ConnectedClientsList.Count <= 1)
+        {
+            NetworkManager.Singleton.Shutdown();
+            return;
+        }
+
+        List<ulong> clientsToDisconnect = new List<ulong>();
+
+        foreach (var client in NetworkManager.Singleton.ConnectedClientsList)
+        {
+            if (client.ClientId != NetworkManager.ServerClientId)
+                clientsToDisconnect.Add(client.ClientId);
+        }
+
+        foreach (ulong id in clientsToDisconnect)
+            NetworkManager.Singleton.DisconnectClient(id, "host has ended game");
+
+        NetworkManager.Singleton.Shutdown();
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void DisssconnectPlayerServerRpc(ulong id)
+    {
+        NetworkManager.Singleton.DisconnectClient(id, "client left server");
     }
 
     private IEnumerator WaitForShutdownAndReset()
@@ -169,7 +207,7 @@ public class Relay : NetworkBehaviour
     {
         if (!connectedPlayerIds.Contains(id))
         {
-            //Debug.Log("connected with id: " +  id);
+            //Debug.Log($"connected with id: {id}");
             connectedPlayerIds.Add(id);
             connectedPlayerCountChange?.Invoke(connectedPlayerIds.Count);
         }
@@ -178,25 +216,19 @@ public class Relay : NetworkBehaviour
 
     public void Dissconnection(ulong id)
     {
-        //Debug.Log("disconnect reason: " + NetworkManager.Singleton.DisconnectReason);
-
         if (connectedPlayerIds.Contains(id))
-        {
-            //Debug.Log("dissconeted player id: " + id);
-
             connectedPlayerIds.Remove(id);
-            ConnectionLost();
-        }
-        else Debug.LogWarning($"player {id} has already disconnected");
 
-        //server dc
-        if (id == serverID)
+        if (id == NetworkManager.Singleton.LocalClientId)
         {
-            //Debug.Log("Host disconnected");
-
+            string reason = NetworkManager.Singleton.DisconnectReason;
+            if (reason == "host has ended game")
+            {
+                ConnectionLost();
+                GameManager.Instance.RequestClientReturnToLobby();
+            }
+            
             connectedPlayerIds.Clear();
-
-            NetworkManager.Singleton.Shutdown();
         }
 
         connectedPlayerCountChange?.Invoke(connectedPlayerIds.Count);
@@ -205,19 +237,6 @@ public class Relay : NetworkBehaviour
     private void ConnectionLost()
     {
         dissconnectMsg.Invoke("Host has disconnected\nPlease leave game");
-    }
-
-    public void DisconnectAllPlayers()
-    {
-        //Debug.Log("dissconnecting all players");
-        for (int i = connectedPlayerIds.Count - 1; i >= 1; i--)
-        {
-            //Debug.Log("dissconnecting player id: " + connectedPlayerIds[i]);
-            ulong playerId = connectedPlayerIds[i];
-            NetworkManager.Singleton.DisconnectClient(playerId);
-        }
-        
-        NetworkManager.Singleton.Shutdown();
     }
 
     public void CreateLAN()

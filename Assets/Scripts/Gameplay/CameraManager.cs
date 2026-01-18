@@ -130,4 +130,11 @@ public class CameraManager : MonoBehaviour
         Vector2 camPosFlat = new Vector2(transform.position.x, transform.position.z);
         return Vector2.Distance(camPosFlat, areaCenter);
     }
+
+    public void ResetCameraPosition()
+    {
+        SetAreaCenter(Vector3.zero);
+        transform.position = new Vector3(0f, 80f, 0f);
+        isDragging = false;
+    }
 }

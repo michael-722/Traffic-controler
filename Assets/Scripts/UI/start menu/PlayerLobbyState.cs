@@ -10,7 +10,6 @@ public class PlayerLobbyState : MonoBehaviour
 {
     public static event Action<bool> AllPlayersReady;
 
-    [SerializeField] private Button readyButton;
     [SerializeField] private TMP_Text playerText;
     [SerializeField] private RectTransform bgRect;
     [SerializeField] private float updateInterval = 0.5f;
@@ -37,6 +36,8 @@ public class PlayerLobbyState : MonoBehaviour
         if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsConnectedClient)
         {
             playerText.text = "";
+
+            bgRect.sizeDelta = new Vector2(0f, 0f);
             return;
         }  
 

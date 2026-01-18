@@ -29,20 +29,38 @@ public class CarSpawner : NetworkBehaviour
         else Destroy(gameObject);
     }
 
+    private void Start()
+    {
+        GameManager.Instance.OnGameStateChanged += HandleState;
+    }
+
     public override void OnNetworkSpawn()
     {
-        if (IsServer) GameManager.Instance.OnGameStateChanged += HandleState;
-        if (!IsServer) enabled = false;
+        if (IsServer)
+            NetworkManager.Singleton.OnClientDisconnectCallback += HandleClientDisconnect;
+    }
+
+    public override void OnNetworkDespawn()
+    {
+        if (IsServer)
+            NetworkManager.Singleton.OnClientDisconnectCallback -= HandleClientDisconnect;
     }
 
     private void HandleState(GameState state)
     {
+
         if (state == GameState.Gameplay)
         {
             RescanSpawnPoints();
             TurnOnCarSpawning();
         }
         else TrunOffCarSpawning();
+    }
+
+    private void HandleClientDisconnect(ulong clientId)
+    {
+        if (groupedSpawnPoints.ContainsKey(clientId))
+            groupedSpawnPoints.Remove(clientId);
     }
 
     private void Update()
@@ -56,25 +74,42 @@ public class CarSpawner : NetworkBehaviour
             SpawnCar();
         }
     }
+
     private void SpawnCar()
     {
+        List<ulong> deadKeys = new List<ulong>();
+
         foreach (var playerArea in groupedSpawnPoints)
         {
             List<Transform> spawnList = playerArea.Value;
-            if (spawnList == null || spawnList.Count == 0)
+            spawnList.RemoveAll(item => item == null);
+
+            if (spawnList.Count == 0)
+            {
+                deadKeys.Add(playerArea.Key);
                 continue;
+            }
 
             Transform sp = spawnList[UnityEngine.Random.Range(0, spawnList.Count)];
-            GameObject go = Instantiate(carPrefab, sp.position, sp.rotation);
-            
-            NetworkObject netObj = go.GetComponent<NetworkObject>();
-            netObj.Spawn(true);
 
-            spawnedCars.Value.Add(netObj.NetworkObjectId);
+            // Final safety check
+            if (sp != null)
+            {
+                GameObject go = Instantiate(carPrefab, sp.position, sp.rotation);
 
-            if (spawnedCars.Value.Count >= GetMaxCars())
-                break;
+                NetworkObject netObj = go.GetComponent<NetworkObject>();
+                netObj.Spawn(true);
+
+                spawnedCars.Value.Add(netObj.NetworkObjectId);
+
+                if (spawnedCars.Value.Count >= GetMaxCars())
+                    break;
+            }
         }
+
+        foreach (ulong key in deadKeys)
+            groupedSpawnPoints.Remove(key);
+        
     }
 
     public void DespawnCar(NetworkObject car)
@@ -155,10 +190,10 @@ public class CarSpawner : NetworkBehaviour
 
     public void ClearAllCars()
     {
-        if (!IsServer) return;
+        if (!IsServer || !NetworkManager.Singleton.IsListening) return;
 
         List<ulong> carsToDespawn = new List<ulong>(spawnedCars.Value);
-        
+
         foreach (ulong objId in carsToDespawn)
         {
             if (NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(objId, out NetworkObject car))

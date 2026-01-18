@@ -29,13 +29,21 @@ public class MainMenuUI : MonoBehaviour
     [SerializeField] private Button hostStartGameLANBtn;
     [SerializeField] private Button hostBackLANBtn;
 
+    [SerializeField] private GameObject menuUIObj;
     [SerializeField] private GameObject hostingUIObj;
     [SerializeField] private GameObject joinedUIObj;
     [SerializeField] private GameObject LANHostingUIObj;
     [SerializeField] private GameObject LANJoinedUIObj;
 
+    private void Start()
+    {
+        DisableListeners();
+        EnableListeners();
+    }
+
     private void OnEnable()
     {
+        DisableListeners();
         EnableListeners();
 
         readyUpBtn.interactable = false;
@@ -270,5 +278,14 @@ public class MainMenuUI : MonoBehaviour
     public void showLANJoinedUI()
     {
         LANJoinedUIObj.SetActive(true);
+    }
+
+    public void ShowMenuUI()
+    {
+        menuUIObj.SetActive(true);
+        hostingUIObj.SetActive(false);
+        joinedUIObj.SetActive(false);
+        LANHostingUIObj.SetActive(false);
+        LANJoinedUIObj.SetActive(false);
     }
 }
