@@ -55,6 +55,11 @@ public class LeaderboardManager : MonoBehaviour
         ResetLeaderboardSession();
     }
 
+    private void OnEnable()
+    {
+        leaderboardUI.SetActive(false);
+    }
+
     private async Task TrySignIn()
     {
         if (AuthenticationService.Instance.IsSignedIn || isSigningIn) return;
