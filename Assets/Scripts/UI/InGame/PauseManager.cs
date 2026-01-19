@@ -22,7 +22,6 @@ public class PauseManager : MonoBehaviour
 
     public void TogglePause()
     {
-        Debug.Log("toggling pause");
         isPaused = !isPaused;
         pauseMenuObj.SetActive(isPaused);
     }

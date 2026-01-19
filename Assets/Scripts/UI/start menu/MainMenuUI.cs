@@ -128,11 +128,11 @@ public class MainMenuUI : MonoBehaviour
         TutorialManager.Instance.DespawnTutorialCars();
         TutorialManager.Instance.SetTutorialVisibilty(false);
 
+        ResetUIText();
+
         yield return null;
 
         OnJoinLANPressed?.Invoke(ipInput.text);
-
-        ResetUIText();
     }
 
     private IEnumerator StartClientCourutine()
@@ -141,11 +141,11 @@ public class MainMenuUI : MonoBehaviour
         TutorialManager.Instance.DespawnTutorialCars();
         TutorialManager.Instance.SetTutorialVisibilty(false);
 
+        ResetUIText();
+
         yield return null;
 
         OnStartClientPressed?.Invoke(joinCodeInput.text.Trim());
-
-        ResetUIText();
     }
 
     public void StartGameBtn()
@@ -214,9 +214,8 @@ public class MainMenuUI : MonoBehaviour
         joinedWaiting.text = msg;
         joinedWaiting.color = Color.red;
 
-        //Relay.Instance.Dissconect();
         TutorialManager.Instance.ShowTutorial();
-        Camera.main.transform.position = new Vector3(0f, 80f, 0f);
+        CameraManager.Instance.ResetCameraPosition();
 
         joinCodeInput.text = "";
         ipInput.text = "";

@@ -10,6 +10,7 @@ using Unity.Services.Relay;
 using Unity.Services.Relay.Models;
 using UnityEngine;
 using System.Collections;
+using WebSocketSharp;
 
 //to cal ping save time msg sent and then time recieve response then t1 - t0 gives ping 
 
@@ -110,6 +111,12 @@ public class Relay : NetworkBehaviour
 
     public async void JoinGame(string joinCode)
     {
+        if (joinCode.IsNullOrEmpty())
+        {
+            dissconnectMsg.Invoke("Try entering a join code before joining");
+            return;
+        }
+
         try
         {
             JoinAllocation allocation = await RelayService.Instance.JoinAllocationAsync(joinCode);
@@ -150,15 +157,15 @@ public class Relay : NetworkBehaviour
 
     public void Dissconect()
     {
-        Debug.Log("dissconnecting from game");
+       // Debug.Log("dissconnecting from game");
         if (NetworkManager.Singleton.IsHost)
         {
-            Debug.Log($"Local id: {NetworkManager.Singleton.LocalClient.ClientId} - disconnecting all players");
+            //Debug.Log($"Local id: {NetworkManager.Singleton.LocalClient.ClientId} - disconnecting all players");
             DissconnectAllPlayers();
         }
         else
         {
-            Debug.Log($"Local id: {NetworkManager.Singleton.LocalClient.ClientId} - disconnecting itself");
+            //Debug.Log($"Local id: {NetworkManager.Singleton.LocalClient.ClientId} - disconnecting itself");
             DisssconnectPlayerServerRpc(NetworkManager.Singleton.LocalClient.ClientId);
         }
 
