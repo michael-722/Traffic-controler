@@ -65,6 +65,7 @@ public class CarSpawner : NetworkBehaviour
 
     private void Update()
     {
+        if (NetworkManager.Singleton == null) return;
         if (!NetworkManager.Singleton.IsListening) return;
         if (!canSpawn || !IsServer) return;
 

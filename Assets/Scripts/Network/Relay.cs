@@ -68,6 +68,8 @@ public class Relay : NetworkBehaviour
             NetworkManager.Singleton.OnClientConnectedCallback -= Connection;
             NetworkManager.Singleton.OnClientDisconnectCallback -= Dissconnection;
         }
+
+        if (UIManager.Instance == null) return;
         var ui = UIManager.Instance.GetMenuUI();
 
         joinCodeCreated -= ui.DisplayJoinCode;

@@ -61,6 +61,8 @@ public class PlayerLobbyState : MonoBehaviour
         Dictionary<ulong, bool> readyStates = PlayerManager.Instance.GetAllPlayerReadyStates();
         bool allReady = usernames.Count > 0;
 
+        sb.AppendLine("Players");
+
         foreach (var player in usernames)
         {
             ulong playerId = player.Key;
@@ -81,14 +83,13 @@ public class PlayerLobbyState : MonoBehaviour
                 sb.AppendLine($"{playerName} - <color=red>Not Ready</color>");
                 allReady = false;
             }
-
-            bgRect.sizeDelta = new Vector2(bgRect.sizeDelta.x, 50f + 43f * (usernames.Count - 1));
         }
 
         playerText.text = sb.ToString();
 
+        //bg scaling
         float dynamicWidth = Mathf.Max(300f, playerText.preferredWidth + 40f);
-        float dynamicHeight = 50f + (43f * Mathf.Max(0, usernames.Count - 1));
+        float dynamicHeight = 100f + (43f * Mathf.Max(0, usernames.Count - 1));
         bgRect.sizeDelta = new Vector2(dynamicWidth, dynamicHeight);
 
         if (lastAllReadyState != allReady)
