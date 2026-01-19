@@ -128,7 +128,7 @@ public class MainMenuUI : MonoBehaviour
         TutorialManager.Instance.DespawnTutorialCars();
         TutorialManager.Instance.SetTutorialVisibilty(false);
 
-        ResetUIText();
+        ResetBtns();
 
         yield return null;
 
@@ -141,7 +141,7 @@ public class MainMenuUI : MonoBehaviour
         TutorialManager.Instance.DespawnTutorialCars();
         TutorialManager.Instance.SetTutorialVisibilty(false);
 
-        ResetUIText();
+        ResetBtns();
 
         yield return null;
 
@@ -158,6 +158,7 @@ public class MainMenuUI : MonoBehaviour
         OnDissconnectPressed?.Invoke();
 
         TutorialManager.Instance.ShowTutorial();
+        CameraManager.Instance.ResetCameraPosition();
 
         ResetUIText();
     }
@@ -172,6 +173,14 @@ public class MainMenuUI : MonoBehaviour
         joinCodeInput.text = "";
         ipInput.text = "";
 
+        ResetBtns();
+
+        UpdateConnectedPlayerCount(1);
+        joinedWaiting.color = Color.white;
+    }
+
+    private void ResetBtns()
+    {
         readyUpBtn.interactable = false;
         hostStartGameBtn.interactable = false;
         hostBackBtn.interactable = false;
@@ -179,9 +188,6 @@ public class MainMenuUI : MonoBehaviour
         readyUpLANBtn.interactable = false;
         hostStartGameLANBtn.interactable = false;
         hostBackLANBtn.interactable = false;
-
-        UpdateConnectedPlayerCount(1);
-        joinedWaiting.color = Color.white;
     }
 
     public void DisplayJoinCode(string code)

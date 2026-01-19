@@ -219,5 +219,34 @@ public class CarSpawner : NetworkBehaviour
         int playerCount = Mathf.Max(1, NetworkManager.Singleton.ConnectedClients.Count);
         return playerCount * carsPerPlayer;
     }
+
+    public void RemoveCarsInQuadrant(int quad)
+    {
+        if (!IsServer || !NetworkManager.Singleton.IsListening) return;
+
+        List<ulong> carsToRemove = new List<ulong>();
+
+        foreach (ulong objId in spawnedCars.Value)
+        {
+            if (NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(objId, out NetworkObject car))
+            {
+                if (car == null) continue;
+                Vector3 pos = car.transform.position;
+                int carQuad = PlayerSpawner.instance.GetQuadrantFromPosition(pos);
+
+                if (carQuad == quad)
+                    carsToRemove.Add(objId);
+            }
+        }
+
+        foreach (ulong objId in carsToRemove)
+        {
+            if (NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(objId, out NetworkObject car))
+            {
+                car.Despawn(true);
+                spawnedCars.Value.Remove(objId);
+            }
+        }
+    }
     #endregion
 }

@@ -226,6 +226,9 @@ public class PlayerSpawner : NetworkBehaviour
     {
         int disconnectedPlayerQuadrant = GetPlayerQuadrant(clientId);
 
+        int quad = GetPlayerQuadrant(clientId);
+        CarSpawner.Instance.RemoveCarsInQuadrant(quad);
+
         if (playerQuadrantMap.ContainsKey(clientId))
         {
             playerQuadrantMap.Remove(clientId);
