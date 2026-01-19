@@ -48,19 +48,6 @@ public class Relay : NetworkBehaviour
         }
     }
 
-    private void OnEnable()
-    {
-        NetworkManager.Singleton.OnClientConnectedCallback += Connection;
-        NetworkManager.Singleton.OnClientDisconnectCallback += Dissconnection;
-
-        var ui = UIManager.Instance.GetMenuUI();
-
-        joinCodeCreated += ui.DisplayJoinCode;
-        connectedPlayerCountChange += ui.UpdateConnectedPlayerCount;
-        dissconnectMsg += ui.UpdateJoinedWaitingText;
-        ipAddressFetched += ui.DisplayIpAdress;
-    }
-
     private void OnDisable()
     {
         if (NetworkManager.Singleton != null)
@@ -81,6 +68,16 @@ public class Relay : NetworkBehaviour
 
     private void Start()
     {
+        NetworkManager.Singleton.OnClientConnectedCallback += Connection;
+        NetworkManager.Singleton.OnClientDisconnectCallback += Dissconnection;
+
+        var ui = UIManager.Instance.GetMenuUI();
+
+        joinCodeCreated += ui.DisplayJoinCode;
+        connectedPlayerCountChange += ui.UpdateConnectedPlayerCount;
+        dissconnectMsg += ui.UpdateJoinedWaitingText;
+        ipAddressFetched += ui.DisplayIpAdress;
+
         transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
     }
 
@@ -142,6 +139,49 @@ public class Relay : NetworkBehaviour
 
             Debug.LogError($"failed to join relay: {e.Message}");
         }
+    }
+
+    public void CreateLAN()
+    {
+        string ip = GetLocalIPAddress();
+        transport.SetConnectionData(ip, 7777, "0.0.0.0");
+
+        ipAddressFetched?.Invoke(ip);
+
+        try
+        {
+            NetworkManager.Singleton.StartHost();
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"failed to start LAN host: {e.Message}");
+        }
+    }
+
+    public void JoinLAN(string ip)
+    {
+        if (!IsValidIP(ip))
+        {
+            dissconnectMsg.Invoke("Invalid IP address please enter vaild address");
+            return;
+        }
+
+        transport.SetConnectionData(ip, 7777, null);
+
+        try
+        {
+            NetworkManager.Singleton.StartClient();
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"failed to start LAN client: {e.Message}");
+        }
+    }
+
+    private bool IsValidIP(string ip)
+    {
+        IPAddress ipAddr;
+        return IPAddress.TryParse(ip, out ipAddr);
     }
 
     public string GetLocalIPAddress()
@@ -246,49 +286,6 @@ public class Relay : NetworkBehaviour
     private void ConnectionLost()
     {
         dissconnectMsg.Invoke("Host has disconnected\nPlease leave game");
-    }
-
-    public void CreateLAN()
-    {
-        string ip = GetLocalIPAddress();
-        transport.SetConnectionData(ip, 7777, "0.0.0.0");
-
-        ipAddressFetched?.Invoke(ip);
-
-        try
-        {
-            NetworkManager.Singleton.StartHost();
-        }
-        catch (Exception e)
-        {
-            Debug.LogError($"failed to start LAN host: {e.Message}");
-        }
-    }
-
-    public void JoinLAN(string ip)
-    {
-        if (!IsValidIP(ip))
-        {
-            dissconnectMsg.Invoke("Invalid IP address please enter vaild address");
-            return;
-        }
-
-        transport.SetConnectionData(ip, 7777, null);
-
-        try
-        {
-            NetworkManager.Singleton.StartClient();
-        }
-        catch (Exception e)
-        {
-            Debug.LogError($"failed to start LAN client: {e.Message}");
-        }
-    }
-
-    private bool IsValidIP(string ip)
-    {
-        IPAddress ipAddr;
-        return IPAddress.TryParse(ip, out ipAddr);
     }
 
     public bool IsUsingRelay()
