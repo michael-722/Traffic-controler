@@ -36,4 +36,14 @@ public class PlayerStats : NetworkBehaviour
     {
         return WaitTimeEntries.Value;
     }
+
+    public void resetStats()
+    {
+        if (IsServer)
+        {
+            TotalCrashes.Value = 0;
+            TotalWaitTime.Value = 0f;
+            WaitTimeEntries.Value = 0;
+        }
+    }
 }

@@ -17,6 +17,8 @@ public class  PostGameUI : MonoBehaviour
     private async void PlayAgain()
     {
         await Awaitable.MainThreadAsync();
+
+        StatTracker.Instance.ResetAllPlayerStats();
         GameManager.Instance.RequestRestGame();
     }
 }

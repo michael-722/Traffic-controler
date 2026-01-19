@@ -97,4 +97,16 @@ public class StatTracker : NetworkBehaviour
         }
         return PlayerWaitTimes;
     }
+
+    public void ResetAllPlayerStats()
+    {
+        if (!IsServer) return;
+
+        PlayerStats[] playersStats = FindObjectsByType<PlayerStats>(FindObjectsInactive.Include, FindObjectsSortMode.InstanceID);
+        foreach (PlayerStats stats in playersStats)
+        {
+            if (stats != null)
+                stats.resetStats();
+        }
+    }
 }

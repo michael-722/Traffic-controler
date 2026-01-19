@@ -32,6 +32,8 @@ public class PauseManager : MonoBehaviour
         isPaused = false;
      
         Relay.Instance.Dissconect();
+
         GameManager.Instance.RequestReturnToLobby();
+        StatTracker.Instance.ResetAllPlayerStats();
     }
 }
