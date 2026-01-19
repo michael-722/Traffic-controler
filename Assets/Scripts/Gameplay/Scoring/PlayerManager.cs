@@ -128,4 +128,10 @@ public class PlayerManager : NetworkBehaviour
         }
         return 0;
     }
+
+    [ClientRpc]
+    public void NotifyLeaderboardUpdateClientRpc(string playerId, int score)
+    {
+        LeaderboardManager.Instance.UpdateLocalHighlight(playerId, score);
+    }
 }
