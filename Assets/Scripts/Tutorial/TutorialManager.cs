@@ -82,7 +82,6 @@ public class TutorialManager : MonoBehaviour
     {
         yield return null;
         
-        //<color=red></color>
         //move camera
         yield return RunStep("Drag and click to move your camera around.", () => (Input.GetMouseButton(0) && Input.GetAxis("Mouse X") != 0 && Input.GetAxis("Mouse Y") != 0));
 
@@ -131,6 +130,7 @@ public class TutorialManager : MonoBehaviour
         HideRing();
         tutorialPanel.SetActive(false);
         GameManager.Instance.SetState(GameState.Lobby);
+        CameraManager.Instance.ResetCameraPosition();
     }
 
     private void enableCarSpawning()
@@ -172,12 +172,16 @@ public class TutorialManager : MonoBehaviour
         for (int i = spawnedCars.Count - 1; i >= 0; i--)
         {
             if (spawnedCars[i] != null)
+            {
+                spawnedCars[i].GetComponent<CarController>().DestroyRearTriggerInstance();
                 DestroyImmediate(spawnedCars[i]);
+            }
             spawnedCars.RemoveAt(i);
         }
     }
 
     //display text and wait for condition to be met
+    //pass in lambda for condition
     private IEnumerator RunStep(string message, Func<bool> completionCondition)
     {
         instructionText.text = message;

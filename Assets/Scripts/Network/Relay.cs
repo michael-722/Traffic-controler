@@ -259,6 +259,15 @@ public class Relay : NetworkBehaviour
             //Debug.Log($"connected with id: {id}");
             connectedPlayerIds.Add(id);
             connectedPlayerCountChange?.Invoke(connectedPlayerIds.Count);
+            if (id == NetworkManager.Singleton.LocalClientId)
+            {
+                if (GameManager.Instance.GetState() != GameState.Lobby)
+                {
+                    Dissconect();
+                    dissconnectMsg.Invoke("Game has already started\nPlease join new game");                    
+                    GameManager.Instance.RequestClientReturnToLobby();
+                }
+            }
         }
         else Debug.LogWarning($"player {id} is already connected");
     }
